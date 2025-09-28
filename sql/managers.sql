@@ -1,0 +1,3 @@
+BEGIN TRANSACTION;
+INSERT INTO "managers" ("manager_id","username","password") VALUES (1,'srhskah','scrypt:32768:8:1$rVxx0G9lFjkLNSt3$8c73924200577e1650825dc4862a47438588b3c5ecbf36ae3b2c8ecb0f42f339409a2464e348e6543716f40950de019ccb3a19ccad0071aeb986043d3b9cec40');
+COMMIT;
