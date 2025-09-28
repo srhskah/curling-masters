@@ -1,0 +1,59 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <h2>为{{ tournament.season.year }} - 第{{ tournament.type_session_number }}届 填写名次</h2>
+  
+  <section>
+    <h3>积分管理</h3>
+    <p>
+      <form method="post" action="/admin-secret/tournaments/{{ tournament.t_id }}/calculate-scores" style="display: inline;">
+        <button type="submit">重新计算积分</button>
+      </form>
+      <small>（保存排名时会自动计算积分）</small>
+    </p>
+  </section>
+  
+  <section>
+    <h3>修改届次信息</h3>
+    <form method="post" action="/admin-secret/tournaments/{{ tournament.t_id }}/edit">
+      <label>赛季:
+        <select name="season_id">
+          {% for s in tournament.season.__class__.query.order_by(tournament.season.__class__.year.desc()).all() %}
+            <option value="{{ s.season_id }}" {% if s.season_id == tournament.season_id %}selected{% endif %}>{{ s.year }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>比赛类型:
+        <select name="t_type">
+          <option value="1" {% if tournament.type == 1 %}selected{% endif %}>正赛</option>
+          <option value="2" {% if tournament.type == 2 %}selected{% endif %}>小赛 (CM250)</option>
+          <option value="3" {% if tournament.type == 3 %}selected{% endif %}>总决赛</option>
+        </select>
+      </label>
+      <label>参赛人数: <input name="player_count" type="number" min="2" value="{{ tournament.player_count or 2 }}" style="width: 4em;"></label>
+  <input type="hidden" name="next" value="{{ '/admin-secret/tournaments/' ~ tournament.t_id ~ '/rankings' }}">
+      <button type="submit">保存届次信息并刷新</button>
+    </form>
+  </section>
+
+  <form method="post">
+    <ol>
+      {% for i in range(1, (tournament.player_count or 0) + 1) %}
+        <li>
+          <!-- 第 {{ i }} 名: -->
+          <select name="rank_{{ i }}">
+            <option value="">（空）</option>
+            {% for p in players %}
+              {% set sel = '' %}
+              {% if existing.get(i) and existing.get(i).player_id == p.player_id %}
+                {% set sel = 'selected' %}
+              {% endif %}
+              <option value="{{ p.player_id }}" {{ sel }}>{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </li>
+      {% endfor %}
+    </ol>
+    <button type="submit">保存名次</button>
+  </form>
+{% endblock %}

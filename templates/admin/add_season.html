@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="form-container">
+  <h2>📅 添加赛季</h2>
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for message in messages %}
+          <div class="flash-message flash-success">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <form method="post">
+    <div class="form-group">
+      <label for="year">📅 赛季名称</label>
+      <input type="text" id="year" name="year" required placeholder="例如：2025年上半年" maxlength="50">
+    </div>
+    
+    <button type="submit" class="form-button">添加赛季</button>
+  </form>
+  
+  <div class="form-links">
+    <p><a href="{{ url_for('admin_index') }}">← 返回管理面板</a></p>
+  </div>
+</div>
+{% endblock %}

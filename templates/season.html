@@ -1,0 +1,394 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <div class="tournament-info">
+    <h2>{{ season.year }}</h2>
+    {% if session.get('admin_logged_in') %}
+    <p><a href="/admin-secret">返回后台管理首页</a></p>
+    <p><a href="/admin-secret/tournaments/add?season_id={{ season.season_id }}">添加本赛季届次</a></p>
+    {% endif %}
+  </div>
+
+  {% if season_pagination %}
+    <div class="pagination-container">
+      <div class="pagination-box season-pagination" style="border: 3px solid #28a745;background: #f0fff4;">
+        <h4>赛季翻页</h4>
+        <div class="pagination-controls">
+          <div class="pagination-left">
+            {% if season_pagination.has_prev %}
+              <a href="/season/{{ season_pagination.prev_info.season_id }}" class="pagination-btn prev-btn">
+                ← 上一赛季
+                <div class="btn-info">
+                  <div class="season-year">{{ season_pagination.prev_info.year }}</div>
+                  <!-- <div class="tournament-info">第{{ season_pagination.prev_info.year }}赛季</div> -->
+                </div>
+              </a>
+              <div class="pagination-info desktop-only">
+                <div class="season-year">{{ season_pagination.prev_info.year }}</div>
+                <!-- <div class="tournament-info">第{{ season_pagination.prev_info.year }}赛季</div> -->
+              </div>
+            {% else %}
+              <span class="pagination-btn disabled">
+                ← 上一赛季
+                <div class="btn-info">
+                  <div class="season-year">无</div>
+                  <!-- <div class="tournament-info">无</div> -->
+                </div>
+              </span>
+            {% endif %}
+          </div>
+          <!-- <div class="pagination-center">
+            <div class="current-tournament">
+              <div class="season-year">{{ season.year }}</div>
+              <div class="tournament-info">第{{ season.year }}赛季</div>
+            </div>
+          </div> -->
+          <div class="pagination-right">
+            {% if season_pagination.has_next %}
+              <a href="/season/{{ season_pagination.next_info.season_id }}" class="pagination-btn next-btn">
+                下一赛季 →
+                <div class="btn-info">
+                  <div class="season-year">{{ season_pagination.next_info.year }}</div>
+                  <!-- <div class="tournament-info">第{{ season_pagination.next_info.year }}赛季</div> -->
+                </div>
+              </a>
+              <div class="pagination-info desktop-only">
+                <div class="season-year">{{ season_pagination.next_info.year }}</div>
+                <!-- <div class="tournament-info">第{{ season_pagination.next_info.year }}赛季</div> -->
+              </div>
+            {% else %}
+              <span class="pagination-btn disabled">
+                下一赛季 →
+                <div class="btn-info">
+                  <div class="season-year">无</div>
+                  <!-- <div class="tournament-info">无</div> -->
+                </div>
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- 分页导航 -->
+  <div class="page-navigation" style="margin: 20px 0; text-align: center;">
+    <button onclick="showPage('tournaments')" class="page-btn active" id="btn-tournaments">历届赛事</button>
+    <button onclick="showPage('medals')" class="page-btn" id="btn-medals">奖牌榜</button>
+  </div>
+
+  <!-- 历届赛事页面 -->
+  <div id="page-tournaments" class="page-content">
+    {# split tournaments into main (type==1), small (type==2), and final (type==3) lists #}
+    {% set main_tournaments = tournaments|selectattr('type','equalto',1)|list %}
+    {% set small_tournaments = tournaments|selectattr('type','equalto',2)|list %}
+    {% set final_tournaments = tournaments|selectattr('type','equalto',3)|list %}
+    
+    <!-- 赛事类型导航 -->
+    <div class="tournament-type-navigation" style="margin: 20px 0; text-align: center;">
+      <button onclick="showTournamentType('major')" class="page-btn active" id="btn-major-tournaments">正赛</button>
+      <button onclick="showTournamentType('minor')" class="page-btn" id="btn-minor-tournaments">小赛（CM250）</button>
+      <button onclick="showTournamentType('final')" class="page-btn" id="btn-final-tournaments">总决赛</button>
+    </div>
+    
+    <!-- 正赛 -->
+    <div id="tournament-major" class="tournament-content">
+      {% if main_tournaments %}
+        <!-- <h3>正赛</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>届次</th>
+                <th>赛制</th>
+                <th>参赛人数</th>
+                <th style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8b4513;">🥇 冠军</th>
+                <th style="background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333;">🥈 亚军</th>
+                <th style="background: linear-gradient(135deg, #cd7f32, #b8860b); color: white;">🥉 季军</th>
+                {% if session.get('admin_logged_in') %}
+                  <th>状态</th>
+                  <th>操作</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in main_tournaments %}
+                <tr>
+                  <td><a href="/tournament/{{ t.t_id }}">{{ t.type_session_number }}</a></td>
+                  <td>{{ t_format_labels.get(t.t_format) if t.t_format else '未设置' }}</td>
+                  <td>{{ t.player_count or '未设置' }}</td>
+                  <td>{{ t.podium[1] if t.podium and t.podium[1] else '' }}</td>
+                  <td>{{ t.podium[2] if t.podium and t.podium[2] else '' }}</td>
+                  <td>{{ t.podium[3] if t.podium and t.podium[3] else '' }}</td>
+                  {% if session.get('admin_logged_in') %}
+                    <td>
+                      {% if t.status == 1 %}
+                        <span style="color: green;">正常</span>
+                      {% elif t.status == 2 %}
+                        <span style="color: red;">已取消</span>
+                      {% else %}
+                        <span style="color: gray;">未知</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="/admin-secret/tournaments/{{ t.t_id }}/edit?next=/season/{{ season.season_id }}" style="margin-right: 10px;">赛制</a>
+                      <a href="/admin-secret/tournaments/{{ t.t_id }}/rankings" style="margin-right: 10px;">排名</a>
+                      <form method="post" action="/admin-secret/tournaments/{{ t.t_id }}/toggle-status" style="display: inline;">
+                        <input type="hidden" name="next" value="/season/{{ season.season_id }}">
+                        <button type="submit" onclick="return confirm('确定要{{ '取消' if t.status == 1 else '恢复' }}这个赛事吗？')" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer;">
+                          {{ '取消' if t.status == 1 else '恢复' }}
+                        </button>
+                      </form>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无正赛</p>
+      {% endif %}
+    </div>
+    
+    <!-- 小赛 -->
+    <div id="tournament-minor" class="tournament-content" style="display: none;">
+      {% if small_tournaments %}
+        <!-- <h3>小赛（CM250）</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>届次</th>
+                <th>赛制</th>
+                <th>参赛人数</th>
+                <th style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8b4513;">🥇 冠军</th>
+                <th style="background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333;">🥈 亚军</th>
+                <th style="background: linear-gradient(135deg, #cd7f32, #b8860b); color: white;">🥉 季军</th>
+                {% if session.get('admin_logged_in') %}
+                  <th>状态</th>
+                  <th>操作</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in small_tournaments %}
+                <tr>
+                  <td><a href="/tournament/{{ t.t_id }}">{{ t.type_session_number }}</a></td>
+                  <td>{{ t_format_labels.get(t.t_format) if t.t_format else '未设置' }}</td>
+                  <td>{{ t.player_count or '未设置' }}</td>
+                  <td>{{ t.podium[1] if t.podium and t.podium[1] else '' }}</td>
+                  <td>{{ t.podium[2] if t.podium and t.podium[2] else '' }}</td>
+                  <td>{{ t.podium[3] if t.podium and t.podium[3] else '' }}</td>
+                  {% if session.get('admin_logged_in') %}
+                    <td>
+                      {% if t.status == 1 %}
+                        <span style="color: green;">正常</span>
+                      {% elif t.status == 2 %}
+                        <span style="color: red;">已取消</span>
+                      {% else %}
+                        <span style="color: gray;">未知</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="/admin-secret/tournaments/{{ t.t_id }}/edit?next=/season/{{ season.season_id }}" style="margin-right: 10px;">赛制</a>
+                      <a href="/admin-secret/tournaments/{{ t.t_id }}/rankings" style="margin-right: 10px;">排名</a>
+                      <form method="post" action="/admin-secret/tournaments/{{ t.t_id }}/toggle-status" style="display: inline;">
+                        <input type="hidden" name="next" value="/season/{{ season.season_id }}">
+                        <button type="submit" onclick="return confirm('确定要{{ '取消' if t.status == 1 else '恢复' }}这个赛事吗？')" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer;">
+                          {{ '取消' if t.status == 1 else '恢复' }}
+                        </button>
+                      </form>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无小赛（CM250）</p>
+      {% endif %}
+    </div>
+    
+    <!-- 总决赛 -->
+    <div id="tournament-final" class="tournament-content" style="display: none;">
+      {% if final_tournaments %}
+        <!-- <h3>总决赛</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>届次</th>
+                <th>赛制</th>
+                <th>参赛人数</th>
+                <th style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8b4513;">🥇 冠军</th>
+                <th style="background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333;">🥈 亚军</th>
+                <th style="background: linear-gradient(135deg, #cd7f32, #b8860b); color: white;">🥉 季军</th>
+                {% if session.get('admin_logged_in') %}
+                  <th>状态</th>
+                  <th>操作</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in final_tournaments %}
+                <tr>
+                  <td><a href="/tournament/{{ t.t_id }}">{{ t.type_session_number }}</a></td>
+                  <td>{{ t_format_labels.get(t.t_format) if t.t_format else '未设置' }}</td>
+                  <td>{{ t.player_count or '未设置' }}</td>
+                  <td>{{ t.podium[1] if t.podium and t.podium[1] else '' }}</td>
+                  <td>{{ t.podium[2] if t.podium and t.podium[2] else '' }}</td>
+                  <td>{{ t.podium[3] if t.podium and t.podium[3] else '' }}</td>
+                  {% if session.get('admin_logged_in') %}
+                    <td>
+                      {% if t.status == 1 %}
+                        <span style="color: green;">正常</span>
+                      {% elif t.status == 2 %}
+                        <span style="color: red;">已取消</span>
+                      {% else %}
+                        <span style="color: gray;">未知</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="/admin-secret/tournaments/{{ t.t_id }}/edit?next=/season/{{ season.season_id }}" style="margin-right: 10px;">赛制</a>
+                      <a href="/admin-secret/tournaments/{{ t.t_id }}/rankings" style="margin-right: 10px;">排名</a>
+                      <form method="post" action="/admin-secret/tournaments/{{ t.t_id }}/toggle-status" style="display: inline;">
+                        <input type="hidden" name="next" value="/season/{{ season.season_id }}">
+                        <button type="submit" onclick="return confirm('确定要{{ '取消' if t.status == 1 else '恢复' }}这个赛事吗？')" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer;">
+                          {{ '取消' if t.status == 1 else '恢复' }}
+                        </button>
+                      </form>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无总决赛</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 奖牌榜页面 -->
+  <div id="page-medals" class="page-content" style="display: none;">
+    <!-- 奖牌榜导航 -->
+    <div class="medal-navigation" style="margin: 20px 0; text-align: center;">
+      <button onclick="showMedalType('major')" class="page-btn active" id="btn-major-medals">大赛奖牌榜</button>
+      <button onclick="showMedalType('minor')" class="page-btn" id="btn-minor-medals">小赛奖牌榜</button>
+    </div>
+    
+    <!-- 大赛奖牌榜 -->
+    <div id="medal-major" class="medal-content">
+      {% if major_medal_standings %}
+        <!-- <h3>大赛奖牌榜</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="medal-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>选手</th>
+                <th>🥇</th>
+                <th>🥈</th>
+                <th>🥉</th>
+                <th>总计</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in major_medal_standings %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                  <td class="gold">{{ player.gold }}</td>
+                  <td class="silver">{{ player.silver }}</td>
+                  <td class="bronze">{{ player.bronze }}</td>
+                  <td class="total">{{ player.total }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无大赛奖牌数据</p>
+      {% endif %}
+    </div>
+    
+    <!-- 小赛奖牌榜 -->
+    <div id="medal-minor" class="medal-content" style="display: none;">
+      {% if minor_medal_standings %}
+        <!-- <h3>小赛奖牌榜</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="medal-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>选手</th>
+                <th>🥇</th>
+                <th>🥈</th>
+                <th>🥉</th>
+                <th>总计</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in minor_medal_standings %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                  <td class="gold">{{ player.gold }}</td>
+                  <td class="silver">{{ player.silver }}</td>
+                  <td class="bronze">{{ player.bronze }}</td>
+                  <td class="total">{{ player.total }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无小赛奖牌数据</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function showTournamentType(type) {
+      // 隐藏所有赛事内容
+      const tournamentContents = document.querySelectorAll('.tournament-content');
+      tournamentContents.forEach(content => {
+        content.style.display = 'none';
+      });
+      
+      // 移除所有按钮的active类
+      const buttons = document.querySelectorAll('.tournament-type-navigation .page-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // 显示选中的赛事内容
+      document.getElementById('tournament-' + type).style.display = 'block';
+      
+      // 激活选中的按钮
+      document.getElementById('btn-' + type + '-tournaments').classList.add('active');
+    }
+    
+    function showMedalType(type) {
+      // 隐藏所有奖牌内容
+      const medalContents = document.querySelectorAll('.medal-content');
+      medalContents.forEach(content => {
+        content.style.display = 'none';
+      });
+      
+      // 移除所有按钮的active类
+      const buttons = document.querySelectorAll('.medal-navigation .page-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // 显示选中的奖牌内容
+      document.getElementById('medal-' + type).style.display = 'block';
+      
+      // 激活选中的按钮
+      document.getElementById('btn-' + type + '-medals').classList.add('active');
+    }
+  </script>
+{% endblock %}

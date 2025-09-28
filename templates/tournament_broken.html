@@ -1,0 +1,2118 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <div class="tournament-info" style="text-align: center;">
+    <h2>{{ tournament.season.year if tournament.season else tournament.season_id }} - 第{{ tournament.type_session_number }}届</h2>
+    
+    {% if session.get('admin_logged_in') %}
+      <p><a href="/admin-secret">返回后台管理首页</a></p>
+    {% endif %}
+
+    <p>
+      类型
+      &NonBreakingSpace;
+      <b>{% if tournament.type == 1 %}正赛{% elif tournament.type == 2 %}小赛 (CM250){% elif tournament.type == 3 %}总决赛{% else %}未知类型{% endif %}</b>
+    </p>
+    <p>
+      参赛人数
+      &NonBreakingSpace;
+      <b>{{ tournament.player_count or '未设置' }}</b>
+    </p>
+    <p>
+      赛制
+      &NonBreakingSpace;
+      <b>{{ t_format_labels.get(tournament.t_format) if tournament.t_format is not none else '未设置' }}</b>
+    </p>
+    <p>
+      赛季
+      &NonBreakingSpace;
+      <b><a href="/season/{{ tournament.season_id }}">{{ tournament.season.year if tournament.season else tournament.season_id }}</a></b>
+    </p>
+  </div>
+  
+  {% if pagination %}
+    <div class="pagination-container">
+      <!-- 同类型赛事翻�?-->
+      {% if pagination.same_type %}
+        <div class="pagination-box same-type-pagination" style="border: 3px solid #0055aa;background: #f0f8ff;">
+          <h4>同类型赛事翻�?/h4>
+          <div class="pagination-controls">
+            <div class="pagination-left">
+              {% if pagination.same_type.has_prev %}
+                <a href="/tournament/{{ pagination.same_type.prev_info.t_id }}" class="pagination-btn prev-btn">
+                  �?上一�?                  <div class="btn-info">
+                    <div class="season-year">{{ pagination.same_type.prev_info.season_year }}</div>
+                    <div class="tournament-info">第{{ pagination.same_type.prev_info.session_number }}届{{ pagination.same_type.prev_info.type_name }}</div>
+                  </div>
+                </a>
+                <div class="pagination-info desktop-only">
+                  <div class="season-year">{{ pagination.same_type.prev_info.season_year }}</div>
+                  <div class="tournament-info">第{{ pagination.same_type.prev_info.session_number }}届{{ pagination.same_type.prev_info.type_name }}</div>
+                </div>
+              {% else %}
+                <span class="pagination-btn disabled">
+                  �?上一�?                  <div class="btn-info">
+                    <div class="season-year">-</div>
+                    <div class="tournament-info">�?/div>
+                  </div>
+                </span>
+              {% endif %}
+            </div>
+            <!-- <div class="pagination-center">
+              <div class="current-tournament">
+                <div class="season-year">{{ tournament.season.year if tournament.season else tournament.season_id }}</div>
+                <div class="tournament-info">第{{ tournament.type_session_number }}届{% if tournament.type == 1 %}正赛{% elif tournament.type == 2 %}小赛{% elif tournament.type == 3 %}总决赛{% endif %}</div>
+              </div>
+            </div> -->
+            <div class="pagination-right">
+              {% if pagination.same_type.has_next %}
+                <a href="/tournament/{{ pagination.same_type.next_info.t_id }}" class="pagination-btn next-btn">
+                  下一�?�?                  <div class="btn-info">
+                    <div class="season-year">{{ pagination.same_type.next_info.season_year }}</div>
+                    <div class="tournament-info">第{{ pagination.same_type.next_info.session_number }}届{{ pagination.same_type.next_info.type_name }}</div>
+                  </div>
+                </a>
+                <div class="pagination-info desktop-only">
+                  <div class="season-year">{{ pagination.same_type.next_info.season_year }}</div>
+                  <div class="tournament-info">第{{ pagination.same_type.next_info.session_number }}届{{ pagination.same_type.next_info.type_name }}</div>
+                </div>
+              {% else %}
+                <span class="pagination-btn disabled">
+                  下一�?�?                  <div class="btn-info">
+                    <div class="season-year">-</div>
+                    <div class="tournament-info">�?/div>
+                  </div>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      <!-- 所有赛事翻�?-->
+      {% if pagination.all_tournaments %}
+        <div class="pagination-box all-tournaments-pagination" style="border: 3px solid #55aa00;background: #f8fff0;">
+          <h4>所有赛事翻�?/h4>
+          <div class="pagination-controls">
+            <div class="pagination-left">
+              {% if pagination.all_tournaments.has_prev %}
+                <a href="/tournament/{{ pagination.all_tournaments.prev_info.t_id }}" class="pagination-btn prev-btn">
+                  �?上一�?                  <div class="btn-info">
+                    <div class="season-year">{{ pagination.all_tournaments.prev_info.season_year }}</div>
+                    <div class="tournament-info">第{{ pagination.all_tournaments.prev_info.session_number }}届{{ pagination.all_tournaments.prev_info.type_name }}</div>
+                  </div>
+                </a>
+                <div class="pagination-info desktop-only">
+                  <div class="season-year">{{ pagination.all_tournaments.prev_info.season_year }}</div>
+                  <div class="tournament-info">第{{ pagination.all_tournaments.prev_info.session_number }}届{{ pagination.all_tournaments.prev_info.type_name }}</div>
+                </div>
+              {% else %}
+                <span class="pagination-btn disabled">
+                  �?上一�?                  <div class="btn-info">
+                    <div class="season-year">-</div>
+                    <div class="tournament-info">�?/div>
+                  </div>
+                </span>
+              {% endif %}
+            </div>
+            <!-- <div class="pagination-center">
+              <div class="current-tournament">
+                <div class="season-year">{{ tournament.season.year if tournament.season else tournament.season_id }}</div>
+                <div class="tournament-info">第{{ tournament.type_session_number }}届{% if tournament.type == 1 %}正赛{% elif tournament.type == 2 %}小赛{% elif tournament.type == 3 %}总决赛{% endif %}</div>
+              </div>
+            </div> -->
+            <div class="pagination-right">
+              {% if pagination.all_tournaments.has_next %}
+                <a href="/tournament/{{ pagination.all_tournaments.next_info.t_id }}" class="pagination-btn next-btn">
+                  下一�?�?                  <div class="btn-info">
+                    <div class="season-year">{{ pagination.all_tournaments.next_info.season_year }}</div>
+                    <div class="tournament-info">第{{ pagination.all_tournaments.next_info.session_number }}届{{ pagination.all_tournaments.next_info.type_name }}</div>
+                  </div>
+                </a>
+                <div class="pagination-info desktop-only">
+                  <div class="season-year">{{ pagination.all_tournaments.next_info.season_year }}</div>
+                  <div class="tournament-info">第{{ pagination.all_tournaments.next_info.session_number }}届{{ pagination.all_tournaments.next_info.type_name }}</div>
+                </div>
+              {% else %}
+                <span class="pagination-btn disabled">
+                  下一�?�?                  <div class="btn-info">
+                    <div class="season-year">-</div>
+                    <div class="tournament-info">�?/div>
+                  </div>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  <!-- 页面导航 -->
+  {% if tournament.type != 2 or tournament.type_session_number < 2 %}
+    <div class="page-navigation">
+      <button onclick="showPage('group-stage')" class="page-btn" id="btn-group-stage">小组�?/button>
+      <button onclick="showPage('knockout')" class="page-btn" id="btn-knockout" style="background-color: #ff6b6b; color: white;">淘汰�?/button>
+    </div>
+  {% endif %}
+
+  <!-- 最终排名页�?-->
+  <!-- <div id="page-final-ranking" class="page-content">
+    <h3>最终排�?/h3>
+    <table class="table table-striped">
+        <thead>
+          <tr>
+          <th>排名</th>
+          <th>选手</th>
+          <th>积分</th>
+          <th>得分</th>
+          <th>失分</th>
+          <th>净�?/th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in final_rankings %}
+          <tr {% if r.player.name == '退�? or r.player.name == '大赛排名已移�? or r.player.name == '小赛排名已移�? or r.player.name == 'N/A' %}class="cancelled"{% endif %}>
+            <td>{{ loop.index }}</td>
+            <td>{{ r.player.name }}</td>
+            <td>{{ r.scores or '未计�? }}</td>
+            <td>{{ r.goals_for or 0 }}</td>
+            <td>{{ r.goals_against or 0 }}</td>
+            <td>{{ (r.goals_for or 0) - (r.goals_against or 0) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  </div> -->
+
+
+  <!-- 小组赛页�?-->
+  <div id="page-group-stage" class="page-content">
+    <!-- 小组赛管理模块（仅限t_format�?,2,3的赛事） -->
+      {% if session.get('admin_logged_in') and tournament.t_format in [1, 2, 3] %}
+      <!-- 检查分组状�?-->
+      {% set has_groups = group_stage_data and group_stage_data.groups %}
+      {% set has_players = has_groups and group_stage_data.groups[0].players|length > 0 %}
+      
+      {% if has_groups and has_players %}
+        <!-- 已分组且已分配选手的情�?-->
+        <div class="admin-controls" style="text-align: center;">
+          <h4>🏆 小组赛管�?/h4>
+          <p>分组信息已完成，共{{ group_stage_data.groups|length }}个小�?/p>
+          <button onclick="showGroupSettings()" class="btn btn-primary">重新设置分组</button>
+        </div>
+        
+        <!-- 隐藏的分组设置模�?-->
+        <div id="group-settings" style="display: none;">
+          <h4>✏️ 小组赛设�?/h4>
+          <form id="group-settings-form">
+            <div class="form-group">
+              <label for="group-size-edit">👥 每组人数</label>
+              <select id="group-size-edit" name="group_size" class="form-control">
+                {% for factor in range(2, 9) %}
+                  {% if tournament.player_count % factor == 0 %}
+                    <option value="{{ factor }}" {% if group_stage_data.groups[0].players|length == factor %}selected{% endif %}>{{ factor }}�?/option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="round-robin-type-edit">⚙️ 赛制类型</label>
+              <select id="round-robin-type-edit" name="round_robin_type" class="form-control">
+                <option value="single">单循�?/option>
+                <option value="double">双循�?/option>
+              </select>
+              <span class="help-text">
+                单循环：每对选手只比赛一次；双循环：每对选手比赛两次（主客场�?              </span>
+            </div>
+            
+            {% for group in group_stage_data.groups %}
+              <div class="group-settings">
+                <h6>🏷�?{{ group.t_name }}</h6>
+                <div class="form-group">
+                  <label>👤 选手列表</label>
+                  <div class="player-list">
+                    {% for player in group.players %}
+                      <div class="player-item">
+                        <span>{{ player.name }}</span>
+                        <button type="button" onclick="removePlayerFromGroup({{ group.t_id }}, {{ player.player_id }})" class="btn btn-sm btn-danger">移除</button>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+    {% endfor %}
+            
+            <button type="submit" class="btn btn-success">保存设置</button>
+            <button type="button" onclick="hideGroupSettings()" class="btn btn-secondary">取消</button>
+          </form>
+        </div>
+      {% elif has_groups and not has_players %}
+        <!-- 已确定每组人数但未填写选手分组的情�?-->
+        <div class="admin-controls" style="text-align: center;">
+          <h4>👥 选手分组设置</h4>
+          <p>分组已创建，共{{ group_stage_data.groups|length }}个小组，请分配选手</p>
+        </div>
+        
+        <!-- 选手分组设置区域（直接显示） -->
+        <div id="player-grouping">
+          <h4>👥 选手分组设置</h4>
+          <div id="grouping-form">
+            <!-- 动态生成的分组界面 -->
+          </div>
+          <div class="grouping-actions">
+            <button onclick="submitPlayerGrouping()" class="btn btn-success">确认分组</button>
+            <button onclick="resetToGroupSettings()" class="btn btn-secondary">重新设置分组</button>
+          </div>
+        </div>
+        
+        <!-- 隐藏的分组设置模�?-->
+        <div id="group-settings" style="display: none;">
+          <h4>🏆 小组赛设�?/h4>
+          <form id="group-settings-form">
+            <div class="form-group">
+              <label for="group-size">👥 每组人数</label>
+              <select id="group-size" name="group_size" class="form-control">
+                {% for factor in range(2, 9) %}
+                  {% if tournament.player_count % factor == 0 %}
+                    <option value="{{ factor }}">{{ factor }}�?/option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+              <span class="help-text">
+                选择每组人数，系统将自动计算分组数量
+              </span>
+            </div>
+            
+            <div class="form-group">
+              <label for="round-robin-type">⚙️ 赛制类型</label>
+              <select id="round-robin-type" name="round_robin_type" class="form-control">
+                <option value="single">单循�?/option>
+                <option value="double">双循�?/option>
+              </select>
+              <span class="help-text">
+                单循环：每对选手只比赛一次；双循环：每对选手比赛两次（主客场�?              </span>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">生成分组</button>
+          </form>
+        </div>
+  {% else %}
+        <!-- 未分组的情况 -->
+        <div id="group-settings">
+          <h4>🏆 小组赛设�?/h4>
+          <form id="group-settings-form">
+            <div class="form-group">
+              <label for="group-size">👥 每组人数</label>
+              <select id="group-size" name="group_size" class="form-control">
+                {% for factor in range(2, 9) %}
+                  {% if tournament.player_count % factor == 0 %}
+                    <option value="{{ factor }}">{{ factor }}�?/option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+              <span class="help-text">
+                选择每组人数，系统将自动计算分组数量
+              </span>
+            </div>
+            
+            <div class="form-group">
+              <label for="round-robin-type">⚙️ 赛制类型</label>
+              <select id="round-robin-type" name="round_robin_type" class="form-control">
+                <option value="single">单循�?/option>
+                <option value="double">双循�?/option>
+              </select>
+              <span class="help-text">
+                单循环：每对选手只比赛一次；双循环：每对选手比赛两次（主客场�?              </span>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">生成分组</button>
+          </form>
+        </div>
+        
+        <!-- 选手分组设置区域（生成分组后显示�?-->
+        <div id="player-grouping" style="display: none;">
+          <h4>👥 选手分组设置</h4>
+          <div id="grouping-form">
+            <!-- 动态生成的分组界面 -->
+          </div>
+          <div class="grouping-actions">
+            <button onclick="submitPlayerGrouping()" class="btn btn-success">确认分组</button>
+            <button onclick="cancelPlayerGrouping()" class="btn btn-secondary">取消</button>
+          </div>
+        </div>
+      {% endif %}
+  {% endif %}
+    
+    <!-- 比赛筛选器（仅限大赛，且不是单循环/双循环赛�?-->
+     
+          <!-- <div class="filter-group">
+            <label for="filter-group">小组�?/label>
+            <select id="filter-group" class="filter-select">
+              <option value="">全部小组</option>
+              {% if group_stage_data and group_stage_data.groups %}
+                {% for group in group_stage_data.groups %}
+                  <option value="{{ group.t_name }}">{{ group.t_name }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div> -->
+    {% if tournament.type == 1 %}
+      <!-- <div class="match-filter">
+        <h4>比赛筛�?/h4>
+        <div class="filter-controls">
+          
+          <div class="filter-group">
+            <label for="filter-status">比赛状态：</label>
+            <select id="filter-status" class="filter-select">
+              <option value="">全部状�?/option>
+              <option value="completed">已完�?/option>
+              <option value="pending">未开�?/option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label for="filter-player">选手�?/label>
+            <select id="filter-player" class="filter-select">
+              <option value="">全部选手</option>
+              {% if group_stage_data and group_stage_data.groups %}
+                {% for group in group_stage_data.groups %}
+                  {% for player in group.players %}
+                    <option value="{{ player.name }}">{{ player.name }}</option>
+                  {% endfor %}
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+          
+          <div class="filter-actions">
+            <button onclick="clearMatchFilters()" class="btn btn-secondary">清除筛�?/button>
+            <button onclick="applyMatchFilters()" class="btn btn-primary">应用筛�?/button>
+          </div>
+        </div>
+      </div> -->
+    
+    <!-- 小组赛显示（仅限非单循环/双循环赛的大赛） -->
+    {% if group_stage_data and group_stage_data.groups and not (tournament.type == 1 and tournament.t_format in [4,5]) %}
+      <!-- 小组分页导航 -->
+      <div class="group-navigation">
+      {% for group in group_stage_data.groups %}
+          <button onclick="showGroup('{{ group.t_name }}')" class="group-btn {% if loop.first %}active{% endif %}" id="btn-{{ group.t_name }}">{{ group.t_name }}�?/button>
+        {% endfor %}
+      </div>
+      
+      {% for group in group_stage_data.groups %}
+        <div class="group-section" id="group-{{ group.t_name }}" {% if not loop.first %}style="display: none;"{% endif %}>
+          <!-- <h4>{{ group.t_name }}</h4> -->
+          
+          
+          <!-- 排名表格 -->
+          <div class="group-ranking">
+            <!-- 桌面端排名表�?-->
+            <div class="desktop-ranking">
+              <table class="table table-striped group-table">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                      <th>选手</th>
+                      <th>场次</th>
+                      <th>�?/th>
+                      <th>�?/th>
+                      <th>�?/th>
+                      <th>总得�?/th>
+                      <th>总失�?/th>
+                      <th>净胜分</th>
+                      <th>积分</th>
+                      <th>总排�?/th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for player in group.players %}
+                    <tr class="{% if tournament.t_format == 1 and player.total_rank <= 8 %}top8{% endif %}">
+                      <td>{{ player.group_rank }}</td>
+                      <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                      
+                      <!-- <td>{{ player.matches_played }}</td>
+                        -->
+                      <!-- <td style="
+                       {% if group.player_count - 1 
+                       == player.wins + player.draws + player.losses %}
+                       background-color: #f3e6ff; font-weight: bold;{% endif %}">{{ player.wins + player.draws + player.losses }}</td> -->
+                      
+                      <td style="{% if player.total_matches == player.wins + player.draws + player.losses %}background-color: rgba(205,255,155,0.75); font-weight: bold;{% endif %}">
+                        {{ player.wins + player.draws + player.losses }}
+                      </td>
+                      <td>{{ player.wins }}</td>
+                      <td>{{ player.draws }}</td>
+                      <td>{{ player.losses }}</td>
+                      <td>{{ player.goals_for }}</td>
+                      <td>{{ player.goals_against }}</td>
+                      <td>{{ player.goals_for - player.goals_against }}</td>
+                      <td>{{ player.points }}</td>
+                      <td>{{ player.total_rank }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- 移动端排名卡�?-->
+            <div class="mobile-ranking">
+              {% for player in group.players %}
+                <div class="player-card {% if tournament.t_format == 1 and player.total_rank <= 8 %}top8{% endif %}">
+                  <div class="player-header">
+                    <span class="player-name"><a href="/player/{{ player.player_id }}">{{ player.name }}</a></span>
+                    <span class="group-rank">小组 第{{ player.group_rank }}</span>
+                    <span class="total-rank" style="margin-left: 1em;">总排�?第{{ player.total_rank }}</span>
+                  </div>
+                  <div class="player-stats">
+                    <div class="stat-row">
+                      <span class="stat-value">{{ player.wins }}</span>
+                      <span class="stat-label">�?/span>
+                    </div>
+                    <div class="stat-row">
+                      <span class="stat-value">{{ player.losses }}</span>
+                      <span class="stat-label">�?/span>
+                    </div>
+                    <div class="stat-row">
+                      <span class="stat-value">{{ player.goals_for }}</span>
+                      <span class="stat-label">得分</span>
+                    </div>
+                    <div class="stat-row">
+                      <span class="stat-value">{{ player.goals_against }}</span>
+                      <span class="stat-label">失分</span>
+                    </div>
+                    <div class="stat-row">
+                      <span class="stat-value">{{ player.goals_for - player.goals_against }}</span>
+                      <span class="stat-label">净�?/span>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          
+          <!-- 组内筛选器 -->
+          <div class="group-filter">
+            <!-- <h5>比赛筛�?/h5> -->
+            <div class="filter-controls">
+              <div class="filter-group">
+                <label for="filter-status-{{ group.t_name }}">比赛状态：</label>
+                <select id="filter-status-{{ group.t_name }}" class="filter-select">
+                  <option value="">全部状�?/option>
+                  <option value="completed">已完�?/option>
+                  <option value="pending">未开�?/option>
+                </select>
+              </div>
+              
+              <div class="filter-group">
+                <label for="filter-player-{{ group.t_name }}">选手�?/label>
+                <select id="filter-player-{{ group.t_name }}" class="filter-select">
+                  <option value="">全部选手</option>
+                  {% for player in group.players %}
+                    <option value="{{ player.name }}">{{ player.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <div class="filter-actions">
+                <button onclick="clearGroupFilters('{{ group.t_name }}')" class="btn btn-secondary">清除筛�?/button>
+                <button onclick="applyGroupFilters('{{ group.t_name }}')" class="btn btn-primary">应用筛�?/button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 比赛结果 - 自适应卡片样式 -->
+          <div class="group-matches">
+            <!-- <h5>{{ group.t_name }}组比�?/h5> -->
+            <div class="matches-grid">
+              {% for match in group.matches %}
+                <div class="match-card" 
+                     data-group="{{ group.t_name }}" 
+                     data-player1="{{ match.player1.name }}" 
+                     data-player2="{{ match.player2.name }}"
+                     data-status="{% if match.player_1_score is not none and match.player_2_score is not none and not (match.player_1_score == 0 and match.player_2_score == 0) %}completed{% else %}pending{% endif %}"
+                     data-group-name="{{ group.t_name }}">
+                  <div class="match-header">
+                    <span class="match-title">{% if match.m_type == 14 %}附加赛{% else %}第{{ loop.index }}场{% endif %}</span>
+                  </div>
+                  <div class="match-players">
+                    <div class="player-info">
+                      <span class="player-name">{{ match.player1.name }}</span>
+                      {% if match.m_type == 2 %}
+                        <span class="home-away-tag home">�?/span>
+                      {% elif match.m_type == 3 %}
+                        <span class="home-away-tag away">�?/span>
+                      {% endif %}
+                      <div class="score-display">
+                        {% if match.player_1_score is not none and match.player_2_score is not none and match.player_1_score >= 0 and match.player_2_score >= 0 %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ match.m_id }}" data-player="1" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score {% if match.player_1_score > match.player_2_score %}winner_1{% elif match.player_1_score == match.player_2_score and match.player_1_score > 0 %}tier_1{% endif %}">{{ match.player_1_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ match.m_id }}" data-player="1" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="player-info">
+                      <span class="player-name">{{ match.player2.name }}</span>
+                      {% if match.m_type == 2 %}
+                        <span class="home-away-tag away">�?/span>
+                      {% elif match.m_type == 3 %}
+                        <span class="home-away-tag home">�?/span>
+                      {% endif %}
+                      <div class="score-display">
+                        {% if match.player_1_score is not none and match.player_2_score is not none and match.player_1_score >= 0 and match.player_2_score >= 0 %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ match.m_id }}" data-player="2" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score {% if match.player_2_score > match.player_1_score %}winner_2{% elif match.player_2_score == match.player_1_score and match.player_2_score > 0 %}tier_2{% endif %}">{{ match.player_2_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ match.m_id }}" data-player="2" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% if session.get('admin_logged_in') %}
+                    <div class="match-actions">
+                      <button class="btn btn-sm btn-primary" onclick="submitScore({{ match.m_id }})">
+                        {% if match.player_1_score is not none and match.player_2_score is not none and match.player_1_score >= 0 and match.player_2_score >= 0 %}
+                          更新
+                        {% else %}
+                          提交
+                        {% endif %}
+                      </button>
+                    </div>
+                  {% else %}
+                    {% if match.player_1_score is not none and match.player_2_score is not none %}
+                      <!-- <div class="match-result">
+                        {% if match.player_1_score > match.player_2_score %}
+                          <span class="winner">{{ match.player1.name }} 获胜</span>
+                        {% elif match.player_2_score > match.player_1_score %}
+                          <span class="winner">{{ match.player2.name }} 获胜</span>
+                        {% else %}
+                          <span class="draw">平局</span>
+                        {% endif %}
+                      </div> -->
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      {% endif %}
+    {% endif %}
+    
+    <!-- 单循环赛显示（所有赛事类型都支持�?-->
+    {% if tournament.t_format in [4, 5, 6] %}
+      <!-- 管理员控制面板（单循�?双循环赛/苏超赛制，管理员登录时显示） -->
+      {% if session.get('admin_logged_in') %}
+        <!-- 管理员控制面板切换按�?-->
+        <div class="admin-controls-toggle" style="text-align: center; margin-bottom: 20px;">
+          <button onclick="toggleAdminControls()" class="btn btn-outline-primary" id="admin-toggle-btn">
+            <i class="fas fa-cog"></i> 管理员控制面�?          </button>
+        </div>
+        
+        <div class="admin-controls" id="admin-controls" style="display: none;">
+          <h4>管理员控制面�?/h4>
+          
+          <!-- 选手选择区域 -->
+          <div class="player-selection">
+            <h5>选择参赛选手（共{{ tournament.player_count }}人）</h5>
+            
+            <div id="player-selectors" class="player-selectors">
+              <!-- 根据赛事参赛人数生成的选手选择�?-->
+              {% for i in range(1, tournament.player_count + 1) %}
+                <div class="player-selector">
+                  <label for="player-{{ i }}">选手{{ i }}�?/label>
+                  <select id="player-{{ i }}" name="player-{{ i }}">
+                    <option value="">请选择选手</option>
+                    {% for player in participants %}
+                      <option value="{{ player.player_id }}">{{ player.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% endfor %}
+            </div>
+            
+            <div class="selection-actions">
+              <button onclick="submitPlayerSelection()" class="btn btn-primary">确认参赛选手</button>
+              <button onclick="clearPlayerSelection()" class="btn btn-secondary">清空选择</button>
+            </div>
+          </div>
+          
+          <!-- 苏超赛制主客场选择区域 -->
+          {% if tournament.t_format == 6 %}
+          <div class="jiangsu-premier-league-selection" style="display: none;">
+            <h5>🏴󠁧󠁢󠁳󠁣󠁴󠁿 苏超赛制主客场选择</h5>
+            <div class="alert alert-info">
+              <p>苏超赛制：每个选手需要选择 <strong>{{ (tournament.player_count - 1) // 2 }}</strong> 个主场对�?/p>
+              <p>剩余对手将自动安排为客场（该选手作为选手2�?/p>
+            </div>
+            
+            <div id="home-away-selectors" class="home-away-selectors">
+              <!-- 动态生成主客场选择�?-->
+            </div>
+            
+            <div class="selection-actions">
+              <button onclick="submitHomeAwaySelection()" class="btn btn-primary">确认主客场安�?/button>
+              <button onclick="clearHomeAwaySelection()" class="btn btn-secondary">清空选择</button>
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- 场次管理区域 -->
+          <div class="match-management" style="display: none;">
+            <h5>场次管理</h5>
+            <div class="control-buttons">
+              <button onclick="generateRoundRobinMatches()" class="btn btn-primary">
+                {% if tournament.t_format == 4 %}生成单循环赛场次{% elif tournament.t_format == 5 %}生成双循环赛场次{% elif tournament.t_format == 6 %}生成苏超赛制场次{% else %}生成循环赛场次{% endif %}
+              </button>
+              <button onclick="clearAllMatches()" class="btn btn-danger">清空所有场�?/button>
+            </div>
+          </div>
+          
+          <!-- 淘汰赛管理区�?-->
+          <div class="knockout-management" style="display: none;">
+            <h5>淘汰赛管�?/h5>
+            <div class="alert alert-info">
+              <p>循环赛已结束，可以生成半决赛资格赛�?/p>
+            </div>
+            <div class="control-buttons">
+              <button onclick="generateSemifinalQualifier()" class="btn btn-success">
+                🥈 生成半决赛资格赛
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      <!-- 单循环赛使用统一的group-section模板 -->
+      {% if group_stage_data and group_stage_data.groups %}
+        <!-- 小组分页导航 -->
+        <div class="group-navigation">
+          {% for group in group_stage_data.groups %}
+            <button onclick="showGroup('{{ group.t_name }}')" class="group-btn {% if loop.first %}active{% endif %}" id="btn-{{ group.t_name }}">{{ group.t_name }}�?/button>
+          {% endfor %}
+        </div>
+        
+        <!-- 冠亚季军展示（仅小赛决赛完成后显示） -->
+        {% if tournament.type == 2 and minor_knockout_data and minor_knockout_data.final_rankings %}
+          {% set is_gold_completed = minor_knockout_data.gold_match and minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none and minor_knockout_data.gold_match.winner_id %}
+          {% set is_bronze_completed = minor_knockout_data.bronze_match and minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none and minor_knockout_data.bronze_match.winner_id %}
+          {% set finals_completed = is_gold_completed and is_bronze_completed %}
+          {% if finals_completed %}
+            <div class="group-section" style="display: none;">
+              <div class="medal-podium">
+                  <div class="podium-container">
+                  <!-- 冠军 --> 
+                  {% set gold_player = minor_knockout_data.final_rankings | selectattr('final_rank', 'equalto', 1) | first %}
+                  {% if gold_player %}
+                    <div class="podium-item gold-podium">
+                      <!-- <div class="podium-rank">1</div> -->
+                      <div class="podium-player">
+                        <div class="medal-icon">🥇</div>
+                        <div class="player-name">{{ gold_player.name }}</div>
+                        <div class="medal-label">冠军</div>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <!-- 亚军 -->
+                  {% set silver_player = minor_knockout_data.final_rankings | selectattr('final_rank', 'equalto', 2) | first %}
+                  {% if silver_player %}
+                    <div class="podium-item silver-podium">
+                      <!-- <div class="podium-rank">2</div> -->
+                      <div class="podium-player">
+                        <div class="medal-icon">🥈</div>
+                        <div class="player-name">{{ silver_player.name }}</div>
+                        <div class="medal-label">亚军</div>
+                      </div>
+                    </div>
+                  {% endif %}
+                  
+                  
+                  
+                  <!-- 季军 -->
+                  {% set bronze_player = minor_knockout_data.final_rankings | selectattr('final_rank', 'equalto', 3) | first %}
+                  {% if bronze_player %}
+                    <div class="podium-item bronze-podium">
+                      <!-- <div class="podium-rank">3</div> -->
+                      <div class="podium-player">
+                        <div class="medal-icon">🥉</div>
+                        <div class="player-name">{{ bronze_player.name }}</div>
+                        <div class="medal-label">季军</div>
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endif %}
+    
+        {% for group in group_stage_data.groups %}
+          <div class="group-section" id="group-{{ group.t_name }}" {% if not loop.first %}style="display: none;"{% endif %}>
+            <!-- <h4>{{ group.t_name }}</h4> -->
+            
+            
+            <!-- 排名切换开�?-->
+            <div class="ranking-switch-container">
+              <label class="ranking-switch">
+                <input type="checkbox" id="rankingToggle" {% if tournament.type == 2 and minor_knockout_data and minor_knockout_data.final_rankings %}checked{% endif %}>
+                <span class="slider"></span>
+              </label>
+              <span class="switch-label" id="switchLabel">
+                {% if tournament.type == 2 and minor_knockout_data and minor_knockout_data.final_rankings %}
+                  {% set is_gold_completed = minor_knockout_data.gold_match and minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none and minor_knockout_data.gold_match.winner_id %}
+                  {% set is_bronze_completed = minor_knockout_data.bronze_match and minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none and minor_knockout_data.bronze_match.winner_id %}
+                  {% set finals_completed = is_gold_completed and is_bronze_completed %}
+                  {% if finals_completed %}显示循环赛排名{% else %}显示最终总排名{% endif %}
+                {% else %}显示最终总排名{% endif %}
+              </span>
+            </div>
+            
+            <!-- 循环赛排名表�?-->
+            <div class="group-ranking" id="roundRobinRanking" {% if tournament.type == 2 and minor_knockout_data and minor_knockout_data.final_rankings %}{% set is_gold_completed = minor_knockout_data.gold_match and minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none and minor_knockout_data.gold_match.winner_id %}{% set is_bronze_completed = minor_knockout_data.bronze_match and minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none and minor_knockout_data.bronze_match.winner_id %}{% set finals_completed = is_gold_completed and is_bronze_completed %}{% if finals_completed %}style="display: none;"{% endif %}{% endif %}>
+              <h5>循环赛排�?/h5>
+              <!-- 桌面端排名表�?-->
+              <div class="desktop-ranking">
+                <table class="table table-striped group-table">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>选手</th>
+                    <th>场次</th>
+                    <th>�?/th>
+                    <th>�?/th>
+                    <th>�?/th>
+                    <th>总得�?/th>
+                    <th>总失�?/th>
+                    <th>净胜分</th>
+                    <th>积分</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    {% for player in group.players %}
+                      <tr class="{% if tournament.type == 2 and tournament.type_session_number == 1 and tournament.t_format in [4, 5, 6] and player.group_rank <= 6 %}top6{% elif tournament.type == 2 and tournament.type_session_number >= 2 and tournament.t_format in [4, 5, 6] and player.group_rank in [3, 4] %}top6{% elif tournament.t_format in [4, 5, 6] and player.group_rank <= 2 %}top2{% elif tournament.t_format in [4, 5, 6] and player.group_rank <= 6 %}top6{% endif %}">
+                        <td>
+                          <strong>{{ player.group_rank }}</strong>
+                        </td>
+                        <td>
+                          <a href="/player/{{ player.player_id }}">{{ player.name }}</a>
+                        </td>
+                        <td style="{% if player.total_matches == player.wins + player.draws + player.losses %}background-color: rgba(205,255,155,0.75); font-weight: bold;{% endif %}">
+                          {{ player.wins + player.draws + player.losses }}
+                        </td>
+                        <td>{{ player.wins }}</td>
+                        <td>{{ player.draws }}</td>
+                        <td>{{ player.losses }}</td>
+                        <td>{{ player.goals_for }}</td>
+                        <td>{{ player.goals_against }}</td>
+                        <td>{{ player.goal_difference }}</td>
+                        <td style="font-weight: bold;">{{ player.points }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+              
+              <!-- 移动端排名卡�?-->
+              <div class="mobile-ranking">
+                {% for player in group.players %}
+                  <div class="player-card {% if tournament.type == 2 and tournament.type_session_number == 1 and tournament.t_format in [4, 5, 6] and player.group_rank <= 6 %}top6{% elif tournament.type == 2 and tournament.type_session_number >= 2 and tournament.t_format in [4, 5, 6] and player.group_rank in [3, 4] %}top6{% elif tournament.t_format in [4, 5, 6] and player.group_rank <= 2 %}top2{% elif tournament.t_format in [4, 5, 6] and player.group_rank <= 6 %}top6{% endif %}">
+                    <div class="card-header">
+                      <div class="rank-info">
+                        <span class="rank-number">{{ player.group_rank }}</span>
+                      </div>
+                      <div class="player-info">
+                        <h4 class="player-name">
+                          <a href="/player/{{ player.player_id }}">{{ player.name }}</a>
+                        </h4>
+                        <div class="points-display">{{ player.points }} �?/div>
+                      </div>
+                    </div>
+                    <div class="card-stats">
+                      <div class="stat-item">
+                        <span class="stat-label">�?/span>
+                        <span class="stat-value wins">{{ player.wins }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-label">�?/span>
+                        <span class="stat-value draws">{{ player.draws }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-label">�?/span>
+                        <span class="stat-value losses">{{ player.losses }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-label">净胜分</span>
+                        <span class="stat-value goal-diff">{{ player.goal_difference }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <!-- 最终总排名表格（仅小赛且决赛完成后显示） -->
+            {% if tournament.type == 2 and minor_knockout_data and minor_knockout_data.final_rankings %}
+              {% set is_gold_completed = minor_knockout_data.gold_match and minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none and minor_knockout_data.gold_match.winner_id %}
+              {% set is_bronze_completed = minor_knockout_data.bronze_match and minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none and minor_knockout_data.bronze_match.winner_id %}
+              {% set finals_completed = is_gold_completed and is_bronze_completed %}
+              
+              {% if finals_completed %}
+                <div class="group-ranking final-ranking" id="finalRanking">
+                  <h5>🏆 最终总排�?/h5>
+                  <!-- 桌面端最终排名表�?-->
+                  <div class="desktop-ranking">
+                    <table class="table table-striped group-table">
+                    <thead>
+                      <tr>
+                        <th>排名</th>
+                        <th>选手</th>
+                        <th>场次</th>
+                        <th>�?/th>
+                        <th>�?/th>
+                        <th>�?/th>
+                        <th>总得�?/th>
+                        <th>总失�?/th>
+                        <th>净胜分</th>
+                        <th>积分</th>
+                        <!-- <th>奖牌</th> -->
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in minor_knockout_data.final_rankings %}
+                          {% set final_rank = player.final_rank or player.rank %}
+                          <tr class="medal-row {% if final_rank == 1 %}gold-medal{% elif final_rank == 2 %}silver-medal{% elif final_rank == 3 %}bronze-medal{% elif final_rank == 4 %}fourth-place{% endif %}">
+                            <td>
+                              <!-- <span class="medal-icon">
+                                {% if final_rank == 1 %}🥇{% elif final_rank == 2 %}🥈{% elif final_rank == 3 %}🥉{% elif final_rank == 4 %}🏅{% endif %}
+                              </span> -->
+                              
+                              {% if final_rank == 1 %}
+                              <span class="medal-icon">🥇</span>
+                              {% elif final_rank == 2 %}
+                              <span class="medal-icon">🥈</span>
+                              {% elif final_rank == 3 %}
+                              <span class="medal-icon">🥉</span>
+                              {% elif final_rank == 4 %}
+                              <span class="medal-icon">🏅</span>
+                              {% else %}
+                              <strong>{{ final_rank }}</strong>
+                              {% endif %}
+                            </td>
+                            <td>
+                              <a href="/player/{{ player.player_id }}">{{ player.name }}</a>
+                              <!-- <span class="medal-label">
+                                {% if final_rank == 1 %}冠军{% elif final_rank == 2 %}亚军{% elif final_rank == 3 %}季军{% elif final_rank == 4 %}殿军{% endif %}
+                              </span> -->
+                            </td>
+                            <td>{{ player.wins + player.draws + player.losses }}</td>
+                            <td>{{ player.wins }}</td>
+                            <td>{{ player.draws }}</td>
+                            <td>{{ player.losses }}</td>
+                            <td>{{ player.goals_for }}</td>
+                            <td>{{ player.goals_against }}</td>
+                            <td>{{ player.goal_difference }}</td>
+                            <td style="font-weight: bold;">{{ player.final_points or player.points }}</td>
+                            <!-- <td>
+                              <span class="medal-badge">
+                                {% if final_rank == 1 %}🥇 冠军{% elif final_rank == 2 %}🥈 亚军{% elif final_rank == 3 %}🥉 季军{% elif final_rank == 4 %}🏅 殿军{% endif %}
+                              </span>
+                            </td> -->
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                  
+                <!-- 移动端最终排名卡�?-->
+                <div class="mobile-ranking" style="text-align: center;">
+                  {% for player in minor_knockout_data.final_rankings %}
+                    {% set final_rank = player.final_rank or player.rank %}
+                    <div class="player-card medal-card {% if final_rank == 1 %}gold-card{% elif final_rank == 2 %}silver-card{% elif final_rank == 3 %}bronze-card{% elif final_rank == 4 %}fourth-card{% endif %}">
+                      <div class="card-header">
+                        <div class="rank-info">
+                          <!-- <span class="rank-number">{{ final_rank }}</span> -->
+                          <!-- <span class="medal-icon">
+                            {% if final_rank == 1 %}🥇{% elif final_rank == 2 %}🥈{% elif final_rank == 3 %}🥉{% elif final_rank == 4 %}🏅{% endif %}
+                          </span> -->
+                          {% if final_rank == 1 %}
+                          <span class="medal-icon">🥇</span>
+                          {% elif final_rank == 2 %}
+                          <span class="medal-icon">🥈</span>
+                          {% elif final_rank == 3 %}
+                          <span class="medal-icon">🥉</span>
+                          {% elif final_rank == 4 %}
+                          <span class="medal-icon">🏅</span>
+                          {% else %}
+                          <span class="rank-number">{{ final_rank }}</span>
+                          {% endif %}
+                        </div>
+                        <div class="player-info">
+                          <h4 class="player-name">
+                            <a href="/player/{{ player.player_id }}">{{ player.name }}</a>
+                            <!-- <span class="medal-label">
+                              {% if final_rank == 1 %}冠军{% elif final_rank == 2 %}亚军{% elif final_rank == 3 %}季军{% elif final_rank == 4 %}殿军{% endif %}
+                            </span> -->
+                          </h4>
+                          <div class="points-display">{{ player.final_points or player.points }} �?/div>
+                        </div>
+                      </div>
+                      <div class="card-stats">
+                        <div class="stat-item">
+                          <span class="stat-label">�?/span>
+                          <span class="stat-value wins">{{ player.wins }}</span>
+                        </div>
+                        <div class="stat-item">
+                          <span class="stat-label">�?/span>
+                          <span class="stat-value draws">{{ player.draws }}</span>
+                        </div>
+                        <div class="stat-item">
+                          <span class="stat-label">�?/span>
+                          <span class="stat-value losses">{{ player.losses }}</span>
+                        </div>
+                        <div class="stat-item">
+                          <span class="stat-label">净胜分</span>
+                          <span class="stat-value goal-diff">{{ player.goal_difference }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          {% endif %}
+        
+            <!-- 组内筛选器 -->
+            <div class="group-filter">
+              <div class="filter-controls">
+                <div class="filter-group">
+                  <label for="filter-status-{{ group.t_name }}">比赛状态：</label>
+                  <select id="filter-status-{{ group.t_name }}" class="filter-select">
+                    <option value="">全部状�?/option>
+                    <option value="completed">已完�?/option>
+                    <option value="pending">未开�?/option>
+                  </select>
+                </div>
+                
+                <div class="filter-group">
+                  <label for="filter-player-{{ group.t_name }}">选手�?/label>
+                  <select id="filter-player-{{ group.t_name }}" class="filter-select">
+                    <option value="">全部选手</option>
+                    {% for player in group.players %}
+                      <option value="{{ player.name }}">{{ player.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                
+                <div class="filter-actions">
+                  <button onclick="clearGroupFilters('{{ group.t_name }}')" class="btn btn-secondary">清空筛�?/button>
+                  <button onclick="applyGroupFilters('{{ group.t_name }}')" class="btn btn-primary">应用筛�?/button>
+                </div>
+              </div>
+            </div>
+            <!-- 比赛结果（使用大赛模板） -->
+            <div class="group-matches">
+              <h5>单循环比�?/h5>
+              <div class="matches-grid">
+                {% for match in group.matches %}
+                <div class="match-card" 
+                data-group="{{ group.t_name }}" 
+                data-player1="{{ match.player1.name }}" 
+                data-player2="{{ match.player2.name }}"
+                data-status="{% if match.player_1_score is not none and match.player_2_score is not none and not (match.player_1_score == 0 and match.player_2_score == 0) %}completed{% else %}pending{% endif %}"
+                data-group-name="{{ group.t_name }}">
+                  <div class="match-header">
+                    <span class="match-title">{% if match.m_type == 14 %}附加赛{% else %}第{{ loop.index }}场{% endif %}</span>
+                  </div>
+                  <div class="match-players">
+                    <div class="player-info">
+                      <span class="player-name">{{ match.player1.name }}</span>
+                      {% if match.m_type == 2 %}
+                        <span class="home-away-tag home">�?/span>
+                      {% elif match.m_type == 3 %}
+                        <span class="home-away-tag away">�?/span>
+                      {% endif %}
+                      <div class="score-display">
+                        {% if match.player_1_score is not none and match.player_2_score is not none and match.player_1_score >= 0 and match.player_2_score >= 0 %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                    data-match-id="{{ match.m_id }}" data-player="1" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score {% if match.player_1_score > match.player_2_score %}winner_1{% elif match.player_1_score == match.player_2_score and match.player_1_score > 0 %}tier_1{% endif %}">{{ match.player_1_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                    data-match-id="{{ match.m_id }}" data-player="1" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="player-info">
+                      <span class="player-name">{{ match.player2.name }}</span>
+                      {% if match.m_type == 2 %}
+                        <span class="home-away-tag away">�?/span>
+                      {% elif match.m_type == 3 %}
+                        <span class="home-away-tag home">�?/span>
+                      {% endif %}
+                      <div class="score-display">
+                        {% if match.player_1_score is not none and match.player_2_score is not none and match.player_1_score >= 0 and match.player_2_score >= 0 %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                    data-match-id="{{ match.m_id }}" data-player="2" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score {% if match.player_2_score > match.player_1_score %}winner_2{% elif match.player_2_score == match.player_1_score and match.player_2_score > 0 %}tier_2{% endif %}">{{ match.player_2_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                    data-match-id="{{ match.m_id }}" data-player="2" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% if session.get('admin_logged_in') %}
+                    <div class="match-actions">
+                      <button class="btn btn-sm btn-primary" onclick="submitScore({{ match.m_id }})">
+                        {% if match.player_1_score is not none and match.player_2_score is not none and match.player_1_score >= 0 and match.player_2_score >= 0 %}
+                          更新
+                        {% else %}
+                          提交
+                        {% endif %}
+                      </button>
+                    </div>
+                  {% else %}
+                    {% if match.player_1_score is not none and match.player_2_score is not none %}
+                      <!-- <div class="match-result">
+                        {% if match.player_1_score > match.player_2_score %}
+                          <span class="winner">{{ match.player1.name }} 获胜</span>
+                        {% elif match.player_2_score > match.player_1_score %}
+                          <span class="winner">{{ match.player2.name }} 获胜</span>
+                        {% else %}
+                          <span class="draw">平局</span>
+                        {% endif %}
+                      </div> -->
+                    {% endif %}
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+      
+      <!-- 小赛手动生成金牌赛和铜牌赛按�?-->
+      {% if tournament.type == 2 and session.get('admin_logged_in') and not minor_knockout_data %}
+        <div class="group-section">
+          <div class="admin-controls">
+            <h4>决赛管理</h4>
+            <div class="alert alert-info">
+              <p>循环赛已结束，可以生成金牌赛和铜牌赛对阵�?/p>
+            </div>
+            <div class="control-buttons">
+              <button onclick="generateMinorTournamentFinals()" class="btn btn-primary">
+                🏆 生成金牌赛和铜牌�?              </button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      <!-- 苏超赛制淘汰赛选择 -->
+      {% if tournament.t_format == 6 and session.get('admin_logged_in') %}
+        <div class="group-section">
+          <div class="admin-controls">
+            <h4>🏴󠁧󠁢󠁳󠁣󠁴󠁿 苏超赛制淘汰赛管�?/h4>
+            <div class="alert alert-info">
+              <p>苏超赛制循环赛已结束，请选择淘汰赛模式：</p>
+            </div>
+            <div class="control-buttons">
+              <button onclick="generateJiangsuPremierLeagueFinals()" class="btn btn-primary">
+                🏆 直接生成金牌赛和铜牌�?              </button>
+              <button onclick="generateJiangsuPremierLeagueSemifinals()" class="btn btn-success">
+                🥈 生成半决赛资格赛
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      
+      <!-- 决赛（仅小赛显示�?-->
+      {% if tournament.type == 2 and minor_knockout_data and (minor_knockout_data.gold_match or minor_knockout_data.bronze_match) %}
+        <div class="group-section">
+          <!-- <h4>决赛</h4> -->
+          
+          <!-- 金牌�?-->
+          {% if minor_knockout_data.gold_match %}
+            <div class="group-matches">
+              <!-- <h5>🥇 金牌�?/h5> -->
+              <div class="matches-grid">
+                <div class="match-card gold-medal-match" 
+                     data-group="决赛" 
+                     data-player1="{{ minor_knockout_data.gold_match.player_1_name }}" 
+                     data-player2="{{ minor_knockout_data.gold_match.player_2_name }}"
+                     data-status="{% if minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none %}completed{% else %}pending{% endif %}"
+                     data-group-name="决赛">
+                  <div class="match-header">
+                    <span class="match-title">金牌�?/span>
+                  </div>
+                  <div class="match-players">
+                    <div class="player-info">
+                      <span class="player-name">{{ minor_knockout_data.gold_match.player_1_name }}</span>
+                      <div class="score-display">
+                        {% if minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.gold_match.m_id }}" data-player="1" 
+                                   value="{{ minor_knockout_data.gold_match.player_1_score or '' }}">
+                          {% else %}
+                            <span class="score {% if minor_knockout_data.gold_match.player_1_score > minor_knockout_data.gold_match.player_2_score %}winner_1{% elif minor_knockout_data.gold_match.player_1_score == minor_knockout_data.gold_match.player_2_score and minor_knockout_data.gold_match.player_1_score > 0 %}tier_1{% endif %}">{{ minor_knockout_data.gold_match.player_1_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.gold_match.m_id }}" data-player="1">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="player-info">
+                      <span class="player-name">{{ minor_knockout_data.gold_match.player_2_name }}</span>
+                      <div class="score-display">
+                        {% if minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.gold_match.m_id }}" data-player="2" 
+                                   value="{{ minor_knockout_data.gold_match.player_2_score or '' }}">
+                          {% else %}
+                            <span class="score {% if minor_knockout_data.gold_match.player_2_score > minor_knockout_data.gold_match.player_1_score %}winner_2{% elif minor_knockout_data.gold_match.player_1_score == minor_knockout_data.gold_match.player_2_score and minor_knockout_data.gold_match.player_2_score > 0 %}tier_2{% endif %}">{{ minor_knockout_data.gold_match.player_2_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.gold_match.m_id }}" data-player="2">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% if session.get('admin_logged_in') %}
+                    <div class="match-actions">
+                      <button class="btn btn-sm btn-primary" onclick="submitScore({{ minor_knockout_data.gold_match.m_id }})">
+                        {% if minor_knockout_data.gold_match.player_1_score is not none and minor_knockout_data.gold_match.player_2_score is not none %}
+                          更新
+                        {% else %}
+                          提交
+                        {% endif %}
+                      </button>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+          
+          <!-- 铜牌�?-->
+          <!-- {% if minor_knockout_data.bronze_match %}
+            <div class="group-matches">
+              <h5>🥉 铜牌�?/h5>
+              <div class="matches-grid">
+                <div class="match-card bronze-match" style="border: 2px solid #cd7f32; background-color: #fdf5e6;">
+                  <div class="match-header">
+                    <span class="match-title">铜牌�?/span>
+                  </div>
+                  <div class="match-players">
+                <div class="player-info">
+                  <span class="player-name">{{ minor_knockout_data.bronze_match.player1_name }}</span>
+                  {% if session.get('admin_logged_in') %}
+                    <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                           data-match-id="{{ minor_knockout_data.bronze_match.m_id }}" data-player="1" 
+                           value="{{ minor_knockout_data.bronze_match.player_1_score or '' }}">
+                  {% else %}
+                    <span class="score">{{ minor_knockout_data.bronze_match.player_1_score or '-' }}</span>
+                  {% endif %}
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="player-info">
+                  <span class="player-name">{{ minor_knockout_data.bronze_match.player2_name }}</span>
+                  {% if session.get('admin_logged_in') %}
+                    <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                           data-match-id="{{ minor_knockout_data.bronze_match.m_id }}" data-player="2" 
+                           value="{{ minor_knockout_data.bronze_match.player_2_score or '' }}">
+                  {% else %}
+                    <span class="score">{{ minor_knockout_data.bronze_match.player_2_score or '-' }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% if session.get('admin_logged_in') %}
+                    <div class="match-actions">
+                  <button class="btn btn-sm btn-primary" onclick="submitScore({{ minor_knockout_data.bronze_match.m_id }})">
+                    {% if minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none %}
+                      更新
+                    {% else %}
+                      提交
+                    {% endif %}
+                  </button>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %} -->
+          
+          <!-- 铜牌�?-->
+          {% if minor_knockout_data.bronze_match %}
+            <div class="group-matches">
+              <!-- <h5>🥉 铜牌�?/h5> -->
+              <div class="matches-grid">
+                <div class="match-card bronze-medal-match" 
+                     data-group="决赛" 
+                     data-player1="{{ minor_knockout_data.bronze_match.player_1_name }}" 
+                     data-player2="{{ minor_knockout_data.bronze_match.player_2_name }}"
+                     data-status="{% if minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none %}completed{% else %}pending{% endif %}"
+                     data-group-name="决赛">
+                  <div class="match-header">
+                    <span class="match-title">铜牌�?/span>
+                  </div>
+                  <div class="match-players">
+                    <div class="player-info">
+                      <span class="player-name">{{ minor_knockout_data.bronze_match.player_1_name }}</span>
+                      <div class="score-display">
+                        {% if minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.bronze_match.m_id }}" data-player="1" 
+                                   value="{{ minor_knockout_data.bronze_match.player_1_score or '' }}">
+                          {% else %}
+                            <span class="score {% if minor_knockout_data.bronze_match.player_1_score > minor_knockout_data.bronze_match.player_2_score %}winner_1{% elif minor_knockout_data.bronze_match.player_1_score == minor_knockout_data.bronze_match.player_2_score and minor_knockout_data.bronze_match.player_1_score > 0 %}tier_1{% endif %}">{{ minor_knockout_data.bronze_match.player_1_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.bronze_match.m_id }}" data-player="1">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="player-info">
+                      <span class="player-name">{{ minor_knockout_data.bronze_match.player_2_name }}</span>
+                      <div class="score-display">
+                        {% if minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.bronze_match.m_id }}" data-player="2" 
+                                   value="{{ minor_knockout_data.bronze_match.player_2_score or '' }}">
+                          {% else %}
+                            <span class="score {% if minor_knockout_data.bronze_match.player_2_score > minor_knockout_data.bronze_match.player_1_score %}winner_2{% elif minor_knockout_data.bronze_match.player_1_score == minor_knockout_data.bronze_match.player_2_score and minor_knockout_data.bronze_match.player_2_score > 0 %}tier_2{% endif %}">{{ minor_knockout_data.bronze_match.player_2_score }}</span>
+                          {% endif %}
+                        {% else %}
+                          {% if session.get('admin_logged_in') %}
+                            <input type="number" class="score-input" placeholder="0" min="0" max="99" 
+                                   data-match-id="{{ minor_knockout_data.bronze_match.m_id }}" data-player="2">
+                          {% else %}
+                            <span class="score">-</span>
+                          {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% if session.get('admin_logged_in') %}
+                    <div class="match-actions">
+                      <button class="btn btn-sm btn-primary" onclick="submitScore({{ minor_knockout_data.bronze_match.m_id }})">
+                        {% if minor_knockout_data.bronze_match.player_1_score is not none and minor_knockout_data.bronze_match.player_2_score is not none %}
+                          更新
+                        {% else %}
+                          提交
+                        {% endif %}
+                      </button>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- 淘汰赛页�?-->
+  <div id="page-knockout" class="page-content">
+    <!-- <h3>淘汰�?/h3> -->
+    
+    {% if tournament.t_format in [1, 3] %}
+      <div class="knockout-management" id="knockout-management">
+        <h4 style="margin-top: 0; color: #495057;">淘汰赛管�?/h4>
+        
+        <!-- 1/4决赛管理 -->
+        <div class="knockout-module">
+          <h5 style="color: #495057;">1/4决赛</h5>
+          
+          <!-- 1/4决赛类型选择 -->
+          <div class="quarterfinal-type-options">
+            <h6>1/4决赛类型</h6>
+            <div class="quarterfinal-type-group">
+              <div class="quarterfinal-type-option" onclick="selectQuarterfinalType('direct')">
+                <input type="radio" name="quarterfinal-type" value="direct" id="quarterfinal-direct">
+                <label for="quarterfinal-direct">直接模式</label>
+          </div>
+              <div class="quarterfinal-type-option" onclick="selectQuarterfinalType('qualifier')">
+                <input type="radio" name="quarterfinal-type" value="qualifier" id="quarterfinal-qualifier">
+                <label for="quarterfinal-qualifier">资格赛模�?/label>
+              </div>
+              <div class="quarterfinal-type-option" onclick="selectQuarterfinalType('manual')">
+                <input type="radio" name="quarterfinal-type" value="manual" id="quarterfinal-manual">
+                <label for="quarterfinal-manual">手动指定位次</label>
+              </div>
+              <div class="quarterfinal-type-option" onclick="selectQuarterfinalType('random')">
+                <input type="radio" name="quarterfinal-type" value="random" id="quarterfinal-random">
+                <label for="quarterfinal-random">随机位次</label>
+              </div>
+            </div>
+            
+            <!-- 随机位次子选项 -->
+            <div id="random-sub-options" style="display: none;">
+              <div class="random-sub-group">
+                <div class="random-sub-option" onclick="selectRandomSubOption('avoid')">
+                  <input type="radio" name="random-sub-option" value="avoid" id="random-avoid">
+                  <label for="random-avoid">回避同组</label>
+                </div>
+                <div class="random-sub-option" onclick="selectRandomSubOption('allow')">
+                  <input type="radio" name="random-sub-option" value="allow" id="random-allow">
+                  <label for="random-allow">不回避同�?/label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 手动指定位次选择界面 -->
+          <div id="manual-position-selection" style="display: none;">
+            <h6>手动指定位次</h6>
+            <div class="position-selection-grid">
+              <div class="position-slot">
+                <label>1</label>
+                <select id="position-1" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>2</label>
+                <select id="position-2" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>3</label>
+                <select id="position-3" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>4</label>
+                <select id="position-4" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>5</label>
+                <select id="position-5" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>6</label>
+                <select id="position-6" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>7</label>
+                <select id="position-7" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+              <div class="position-slot">
+                <label>8</label>
+                <select id="position-8" class="form-control">
+                  <option value="">选择选手</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="module-actions" style="display: none;">
+            <button onclick="generateQuarterfinal()" class="btn btn-primary">生成1/4决赛</button>
+            <button onclick="updateKnockout()" class="btn btn-secondary">更新淘汰�?/button>
+          </div>
+          <div class="module-status"></div>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        <h4>此赛事不支持淘汰赛模�?/h4>
+        <p>只有"小组�?1/4决赛"�?小组�?半决赛资格赛"格式的赛事才支持淘汰赛功能�?/p>
+      </div>
+    {% endif %}
+    
+    <!-- 淘汰赛树形布局显示 -->
+    {% set knockout_matches = [] %}
+    {% for match in matches %}
+      {% if match.m_type in [8, 9, 10, 11, 12, 13] %}
+        {% set _ = knockout_matches.append(match) %}
+      {% endif %}
+    {% endfor %}
+    
+    <!-- 淘汰赛网格布局显示 -->
+    
+    {% if knockout_matches %}
+      <div class="knockout-grid-container">
+        <h4 style="color: #495057; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">淘汰赛对�?/h4>
+        
+        <!-- 滑动导航（仅在窄屏时显示�?-->
+        <div class="sliding-nav" style="display: none;">
+          <button class="slide-btn prev" onclick="slideKnockoutGrid(-1)">�?/button>
+          <div class="slide-indicators">
+            {% set semifinal_qualifier_matches = knockout_matches|selectattr('m_type', 'equalto', 9)|list %}
+            {% set quarterfinal_matches = knockout_matches|selectattr('m_type', 'equalto', 8)|list %}
+            {% set semifinal_matches = knockout_matches|selectattr('m_type', 'equalto', 10)|list %}
+            {% set gold_matches = knockout_matches|selectattr('m_type', 'equalto', 11)|list %}
+            {% set bronze_matches = knockout_matches|selectattr('m_type', 'equalto', 12)|list %}
+            
+            {% if semifinal_qualifier_matches %}
+              <span class="slide-indicator active" data-slide="0" onclick="goToSlide(0)">半决赛资格赛</span>
+            {% endif %}
+            
+            {% if quarterfinal_matches %}
+              <span class="slide-indicator {% if not semifinal_qualifier_matches %}active{% endif %}" 
+                    data-slide="{% if semifinal_qualifier_matches %}1{% else %}0{% endif %}" 
+                    onclick="goToSlide({% if semifinal_qualifier_matches %}1{% else %}0{% endif %})">1/4决赛</span>
+            {% endif %}
+            
+            {% if semifinal_matches %}
+              <span class="slide-indicator {% if not semifinal_qualifier_matches and not quarterfinal_matches %}active{% endif %}" 
+                    data-slide="{% if semifinal_qualifier_matches and quarterfinal_matches %}2{% elif semifinal_qualifier_matches or quarterfinal_matches %}1{% else %}0{% endif %}" 
+                    onclick="goToSlide({% if semifinal_qualifier_matches and quarterfinal_matches %}2{% elif semifinal_qualifier_matches or quarterfinal_matches %}1{% else %}0{% endif %})">半决�?/span>
+            {% endif %}
+            
+            {% if gold_matches or bronze_matches %}
+              <span class="slide-indicator {% if not semifinal_qualifier_matches and not quarterfinal_matches and not semifinal_matches %}active{% endif %}" 
+                    data-slide="{% if semifinal_qualifier_matches and quarterfinal_matches and semifinal_matches %}3{% elif (semifinal_qualifier_matches and quarterfinal_matches) or (semifinal_qualifier_matches and semifinal_matches) or (quarterfinal_matches and semifinal_matches) %}2{% elif semifinal_qualifier_matches or quarterfinal_matches or semifinal_matches %}1{% else %}0{% endif %}" 
+                    onclick="goToSlide({% if semifinal_qualifier_matches and quarterfinal_matches and semifinal_matches %}3{% elif (semifinal_qualifier_matches and quarterfinal_matches) or (semifinal_qualifier_matches and semifinal_matches) or (quarterfinal_matches and semifinal_matches) %}2{% elif semifinal_qualifier_matches or quarterfinal_matches or semifinal_matches %}1{% else %}0{% endif %})">决赛</span>
+            {% endif %}
+          </div>
+          <button class="slide-btn next" onclick="slideKnockoutGrid(1)">�?/button>
+        </div>
+        
+        <div class="knockout-grid">
+          <!-- 半决赛资格赛轮次 -->
+          {% set semifinal_qualifier_matches = knockout_matches|selectattr('m_type', 'equalto', 9)|list %}
+          {% if semifinal_qualifier_matches %}
+              {% for match in semifinal_qualifier_matches %}
+              <div class="knockout-card-qualifier">
+                <div class="knockout-card-title">半决赛资格赛</div>
+                <div class="knockout-card-players">
+                  <div class="knockout-card-player {% if match.player_1_score > match.player_2_score %}winner{% endif %}">
+                    <span>{{ match.player1.name }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="1"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_1_score }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="knockout-card-player {% if match.player_2_score > match.player_1_score %}winner{% endif %}">
+                    <span>{{ match.player2.name }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="2"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_2_score }}</span>
+                    {% endif %}
+                  </div>
+                  </div>
+                  {% if session.get('admin_logged_in') %}
+                <div class="knockout-card-actions">
+                  <button class="btn btn-sm btn-primary" onclick="submitKnockoutScore({{ match.m_id|tojson }})" 
+                          {% if match.player_1_score < 0 or match.player_2_score < 0 %}disabled{% endif %}>
+                    提交
+                  </button>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+          {% endif %}
+          
+          <!-- 1/4决赛轮次 -->
+          {% set quarterfinal_matches = knockout_matches|selectattr('m_type', 'equalto', 8)|list %}
+          {% if quarterfinal_matches %}
+              {% for match in quarterfinal_matches %}
+              <div class="knockout-card-quarterfinal" data-type="quarterfinal" id="quarterfinal-{{ loop.index }}">
+                <div class="knockout-card-title">1/4决赛</div>
+                <div class="knockout-card-players">
+                  <div class="knockout-card-player {% if match.player_1_score > match.player_2_score %}winner{% endif %}">
+                    <span>
+                      {% if match.player_1_id == -1 %}
+                        待资格赛结果
+                      {% else %}
+                        {{ match.player1.name if match.player1 else '待定' }}
+                      {% endif %}
+                    </span>
+                    {% if match.player_1_id != -1 %}
+                      {% if session.get('admin_logged_in') %}
+                        <input type="number" class="knockout-card-score" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}" min="0" 
+                               data-match-id="{{ match.m_id }}" data-player="1"
+                               style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                      {% else %}
+                        <span class="knockout-card-score">{{ match.player_1_score }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="knockout-card-score">-</span>
+                    {% endif %}
+                  </div>
+                  <div class="knockout-card-player {% if match.player_2_score > match.player_1_score %}winner{% endif %}">
+                    <span>
+                      {% if match.player_2_id == -1 %}
+                        待资格赛结果
+                      {% else %}
+                        {{ match.player2.name if match.player2 else '待定' }}
+                      {% endif %}
+                    </span>
+                    {% if match.player_2_id != -1 %}
+                      {% if session.get('admin_logged_in') %}
+                        <input type="number" class="knockout-card-score" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}" min="0" 
+                               data-match-id="{{ match.m_id }}" data-player="2"
+                               style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                      {% else %}
+                        <span class="knockout-card-score">{{ match.player_2_score }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="knockout-card-score">-</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if session.get('admin_logged_in') and match.player_1_id != -1 and match.player_2_id != -1 %}
+                  <div class="knockout-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="submitKnockoutScore({{ match.m_id|tojson }})" 
+                            {% if match.player_1_score < 0 or match.player_2_score < 0 %}disabled{% endif %}>
+                      提交
+                    </button>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+          {% endif %}
+          
+          <!-- 半决赛轮�?-->
+          {% set semifinal_matches = knockout_matches|selectattr('m_type', 'equalto', 10)|list %}
+          {% if semifinal_matches %}
+            {% for match in semifinal_matches %}
+              {% if match.player_1_id and match.player_2_id %}
+              <div class="knockout-card-semifinal" id="semifinal-{{ loop.index }}">
+                <div class="knockout-card-title">半决�?/div>
+                <div class="knockout-card-players">
+                  <div class="knockout-card-player {% if match.player_1_score > match.player_2_score %}winner{% endif %}">
+                    <span>{{ match.player1.name if match.player1 else '待定' }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="1"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_1_score if match.player_1_score >= 0 else '' }}</span>
+                    {% endif %}
+              </div>
+                  <div class="knockout-card-player {% if match.player_2_score > match.player_1_score %}winner{% endif %}">
+                    <span>{{ match.player2.name if match.player2 else '待定' }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="2"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_2_score if match.player_2_score >= 0 else '' }}</span>
+                    {% endif %}
+              </div>
+            </div>
+                {% if session.get('admin_logged_in') %}
+                  <div class="knockout-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="submitKnockoutScore({{ match.m_id|tojson }})" 
+                            {% if match.player_1_score < 0 or match.player_2_score < 0 %}disabled{% endif %}>
+                      提交
+                    </button>
+              </div>
+                {% endif %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          
+          <!-- 金牌赛轮�?-->
+          {% set gold_matches = knockout_matches|selectattr('m_type', 'equalto', 11)|list %}
+          {% if gold_matches %}
+            {% for match in gold_matches %}
+              {% if match.player_1_id and match.player_2_id %}
+              <div class="knockout-card-gold" id="gold-match">
+                <div class="knockout-card-title">🥇 金牌�?/div>
+                <div class="knockout-card-players">
+                  <div class="knockout-card-player {% if match.player_1_score > match.player_2_score %}winner{% endif %}">
+                    <span>{{ match.player1.name if match.player1 else '待定' }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="1"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_1_score if match.player_1_score >= 0 else '' }}</span>
+                    {% endif %}
+            </div>
+                  <div class="knockout-card-player {% if match.player_2_score > match.player_1_score %}winner{% endif %}">
+                    <span>{{ match.player2.name if match.player2 else '待定' }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="2"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_2_score if match.player_2_score >= 0 else '' }}</span>
+                    {% endif %}
+          </div>
+              </div>
+                {% if session.get('admin_logged_in') %}
+                  <div class="knockout-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="submitKnockoutScore({{ match.m_id|tojson }})" 
+                            {% if match.player_1_score < 0 or match.player_2_score < 0 %}disabled{% endif %}>
+                      提交
+                    </button>
+              </div>
+                {% endif %}
+            </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          
+          <!-- 铜牌赛轮�?-->
+          {% set bronze_matches = knockout_matches|selectattr('m_type', 'equalto', 12)|list %}
+          {% if bronze_matches %}
+            {% for match in bronze_matches %}
+              {% if match.player_1_id and match.player_2_id %}
+              <div class="knockout-card-bronze" id="bronze-match">
+                <div class="knockout-card-title">🥉 铜牌�?/div>
+                <div class="knockout-card-players">
+                  <div class="knockout-card-player {% if match.player_1_score > match.player_2_score %}winner{% endif %}">
+                    <span>{{ match.player1.name if match.player1 else '待定' }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_1_score if match.player_1_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="1"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_1_score if match.player_1_score >= 0 else '' }}</span>
+                    {% endif %}
+              </div>
+                  <div class="knockout-card-player {% if match.player_2_score > match.player_1_score %}winner{% endif %}">
+                    <span>{{ match.player2.name if match.player2 else '待定' }}</span>
+                    {% if session.get('admin_logged_in') %}
+                      <input type="number" class="knockout-card-score" value="{{ match.player_2_score if match.player_2_score >= 0 else '' }}" min="0" 
+                             data-match-id="{{ match.m_id }}" data-player="2"
+                             style="width: 40px; padding: 2px; border: 1px solid #ced4da; border-radius: 3px; text-align: center;">
+                    {% else %}
+                      <span class="knockout-card-score">{{ match.player_2_score if match.player_2_score >= 0 else '' }}</span>
+                    {% endif %}
+              </div>
+            </div>
+                {% if session.get('admin_logged_in') %}
+                  <div class="knockout-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="submitKnockoutScore({{ match.m_id|tojson }})" 
+                            {% if match.player_1_score < 0 or match.player_2_score < 0 %}disabled{% endif %}>
+                      提交
+                    </button>
+          </div>
+                {% endif %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    // 全局变量
+    let selectedQuarterfinalType = null;
+    let selectedRandomSubOption = null;
+    // 选手选择功能（带防抖�?    function updatePlayerOptions() {
+      // 清除之前的定时器
+      if (updatePlayerOptionsTimeout) {
+        clearTimeout(updatePlayerOptionsTimeout);
+      }
+      
+      // 设置新的定时器，延迟执行
+      updatePlayerOptionsTimeout = setTimeout(function() {
+        updatePlayerOptionsImmediate();
+      }, 100);
+    }
+    
+    // 立即执行更新
+    function updatePlayerOptionsImmediate() {
+      try {
+        const playerCount = {{ tournament.player_count }};
+        const allPlayers = {{ participants | tojson }};
+        
+        // 调试信息（只在第一次调用时显示�?        if (!window.playerOptionsInitialized) {
+          console.log('playerCount:', playerCount);
+          console.log('allPlayers:', allPlayers);
+          window.playerOptionsInitialized = true;
+        }
+        
+        // 检查数据有效�?        if (!allPlayers || !Array.isArray(allPlayers) || allPlayers.length === 0) {
+          console.error('allPlayers数据无效或为�?', allPlayers);
+          alert('没有可用的选手数据，请刷新页面重试');
+          return;
+        }
+        
+        // 获取所有已选择的选手ID
+        const selectedPlayerIds = new Set();
+        for (let i = 1; i <= playerCount; i++) {
+          const select = document.getElementById(`player-${i}`);
+          if (select && select.value) {
+            selectedPlayerIds.add(parseInt(select.value));
+          }
+        }
+        
+        // 更新所有下拉框的选项
+        for (let i = 1; i <= playerCount; i++) {
+          const select = document.getElementById(`player-${i}`);
+          if (!select) continue;
+          
+          const currentValue = select.value;
+          
+          // 清空选项
+          select.innerHTML = '<option value="">请选择选手</option>';
+          
+          // 添加可用选项
+          allPlayers.forEach(function(player) {
+            try {
+              // 检查player对象结构
+              if (!player || typeof player !== 'object') {
+                console.error('无效的player对象:', player);
+                return;
+              }
+              
+              const playerId = player.player_id;
+              const playerName = player.name;
+              
+              // 检查必要属�?              if (!playerId || !playerName) {
+                console.error('player缺少必要属�?', player);
+                return;
+              }
+              
+              const isSelected = selectedPlayerIds.has(playerId);
+              const isCurrentSelection = parseInt(currentValue) === playerId;
+              
+              // 如果这个选手没有被选中，或者是当前下拉框的选中项，则显�?              if (!isSelected || isCurrentSelection) {
+                const option = document.createElement('option');
+                option.value = playerId;
+                option.textContent = playerName; // 使用textContent而不是innerHTML
+                if (isCurrentSelection) {
+                  option.selected = true;
+                }
+                select.appendChild(option);
+              }
+            } catch (error) {
+              console.error('处理player时出�?', error, player);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('updatePlayerOptions函数出错:', error);
+        alert('更新选手选项时出错，请刷新页面重�?);
+      }
+    }
+    
+    // 初始化选手选择�?    function initializePlayerSelectors() {
+      const playerCount = {{ tournament.player_count }};
+      
+      for (let i = 1; i <= playerCount; i++) {
+        const select = document.getElementById(`player-${i}`);
+        if (select) {
+          select.addEventListener('change', updatePlayerOptions);
+        }
+      }
+      
+      // 初始化选项
+      updatePlayerOptionsImmediate();
+    }
+    
+    // 生成场次
+    function generateMatches() {
+      const tournamentId = {{ tournament.t_id }};
+        const selectedPlayers = [];
+        
+      // 获取选中的选手
+      const playerCount = {{ tournament.player_count }};
+        for (let i = 1; i <= playerCount; i++) {
+          const select = document.getElementById(`player-${i}`);
+          if (select && select.value) {
+            selectedPlayers.push(parseInt(select.value));
+          }
+        }
+        
+        if (selectedPlayers.length !== playerCount) {
+        alert('请选择所有选手');
+          return;
+        }
+        
+      // 发送请求生成场�?      fetch('/admin-secret/tournament/' + tournamentId + '/set-participants', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+          participants: selectedPlayers
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+          alert('场次生成成功�?);
+            location.reload();
+          } else {
+          alert('生成失败�? + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        alert('生成失败�? + error.message);
+        });
+    }
+    
+    // 生成半决赛资格赛（通用函数�?    function generateSemifinalQualifier() {
+      const tournamentId = {{ tournament.t_id }};
+      
+      if (confirm('确定要生成半决赛资格赛吗？这将覆盖现有的淘汰赛数据�?)) {
+        fetch('/admin-secret/tournament/' + tournamentId + '/generate-semifinal-qualifier', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('半决赛资格赛生成成功�?);
+            location.reload();
+          } else {
+            alert('生成失败�? + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('生成失败�? + error.message);
+        });
+      }
+    }
+    
+    // 淘汰赛轮播图拖拽功能
+    let isDragging = false;
+    let startX = 0;
+    let currentTranslate = 0;
+    let previousTranslate = 0;
+    let animationID = 0;
+    
+    function initCarouselDrag() {
+      const carousel = document.querySelector('.knockout-carousel');
+      if (!carousel) return;
+      
+      // 鼠标事件
+      carousel.addEventListener('mousedown', dragStart);
+      carousel.addEventListener('mousemove', dragMove);
+      carousel.addEventListener('mouseup', dragEnd);
+      carousel.addEventListener('mouseleave', dragEnd);
+      
+      // 触摸事件
+      carousel.addEventListener('touchstart', dragStart);
+      carousel.addEventListener('touchmove', dragMove);
+      carousel.addEventListener('touchend', dragEnd);
+      
+      // 防止图片拖拽
+      carousel.addEventListener('dragstart', (e) => e.preventDefault());
+    }
+    
+    function dragStart(e) {
+      if (e.type === 'touchstart') {
+        startX = e.touches[0].clientX;
+        } else {
+        startX = e.clientX;
+      }
+      isDragging = true;
+      
+      const carousel = document.querySelector('.knockout-carousel');
+      carousel.style.cursor = 'grabbing';
+    }
+    
+    function dragMove(e) {
+      if (!isDragging) return;
+      
+      e.preventDefault();
+      
+      let currentX = 0;
+      if (e.type === 'touchmove') {
+        currentX = e.touches[0].clientX;
+      } else {
+        currentX = e.clientX;
+      }
+      
+      currentTranslate = previousTranslate + currentX - startX;
+    }
+    
+    function dragEnd() {
+      isDragging = false;
+      
+      const carousel = document.querySelector('.knockout-carousel');
+      carousel.style.cursor = 'grab';
+      
+      const movedBy = currentTranslate - previousTranslate;
+      
+      if (movedBy < -100 && currentKnockoutRound < totalKnockoutRounds - 1) {
+        // 向左滑动，切换到下一�?        changeKnockoutRound(1);
+      } else if (movedBy > 100 && currentKnockoutRound > 0) {
+        // 向右滑动，切换到上一�?        changeKnockoutRound(-1);
+      }
+      
+      previousTranslate = currentTranslate;
+    }
+    
+    // 淘汰赛轮播图功能
+    let currentKnockoutRound = 0;
+    let totalKnockoutRounds = 0;
+    
+    // 初始化轮播图轮次数量
+    function initKnockoutRounds() {
+      const indicators = document.querySelectorAll('.indicator');
+      totalKnockoutRounds = indicators.length;
+      
+      // 找到第一个活跃的指示器作为初始轮�?      indicators.forEach((indicator, index) => {
+        if (indicator.classList.contains('active')) {
+          currentKnockoutRound = index;
+        }
+      });
+      
+      // 动态设置轮播图宽度
+      if (totalKnockoutRounds > 0) {
+        const carouselTrack = document.querySelector('.carousel-track');
+        const carouselSlides = document.querySelectorAll('.carousel-slide');
+        
+        if (carouselTrack && carouselSlides.length > 0) {
+          // 设置轨道宽度为轮次数量的100%
+          carouselTrack.style.width = (totalKnockoutRounds * 100) + '%';
+          
+          // 设置每个轮次的宽�?          carouselSlides.forEach(slide => {
+            slide.style.width = (100 / totalKnockoutRounds) + '%';
+          });
+        }
+      }
+    }
+    
+    function changeKnockoutRound(direction) {
+      const slides = document.querySelectorAll('.carousel-slide');
+      const indicators = document.querySelectorAll('.indicator');
+      
+      if (totalKnockoutRounds === 0) return;
+      
+      // 移除当前活跃状�?      slides[currentKnockoutRound].classList.remove('active');
+      indicators[currentKnockoutRound].classList.remove('active');
+      
+      // 计算新的轮次
+      currentKnockoutRound += direction;
+      if (currentKnockoutRound < 0) {
+        currentKnockoutRound = totalKnockoutRounds - 1;
+      } else if (currentKnockoutRound >= totalKnockoutRounds) {
+        currentKnockoutRound = 0;
+      }
+      
+      // 添加新的活跃状�?      slides[currentKnockoutRound].classList.add('active');
+      indicators[currentKnockoutRound].classList.add('active');
+    }
+    
+    // 点击指示器切换轮�?    function goToKnockoutRound(round) {
+      const slides = document.querySelectorAll('.carousel-slide');
+      const indicators = document.querySelectorAll('.indicator');
+      
+      if (totalKnockoutRounds === 0) return;
+      
+      // 移除当前活跃状�?      slides[currentKnockoutRound].classList.remove('active');
+      indicators[currentKnockoutRound].classList.remove('active');
+      
+      // 设置新的轮次
+      currentKnockoutRound = round;
+      
+      // 添加新的活跃状�?      slides[currentKnockoutRound].classList.add('active');
+      indicators[currentKnockoutRound].classList.add('active');
+    }
+    
+    // 页面加载完成后检查现有格�?    document.addEventListener('DOMContentLoaded', function() {
+      console.log('页面脚本开始执�?);
+      
+      // 初始化响应式滑动网格
+      initSlidingGrid();
+      initGridDrag();
+      
+      // 监听窗口大小变化
+      window.addEventListener('resize', handleResize);
+      
+      // 检查是否是小赛（第2届起�?      const isMinorTournament = {{ 'true' if tournament.type == 2 and tournament.type_session_number >= 2 else 'false' }};
+      
+      if (isMinorTournament) {
+        // 小赛（第2届起）：隐藏分页按钮，直接显示小组赛页面
+        const pageNavigation = document.querySelector('.page-navigation');
+        if (pageNavigation) {
+          pageNavigation.style.display = 'none';
+        }
+        
+        // 确保小组赛页面可�?        const groupStagePage = document.getElementById('page-group-stage');
+        if (groupStagePage) {
+          groupStagePage.style.display = 'block';
+        }
+        
+        // 隐藏其他页面
+        const knockoutPage = document.getElementById('page-knockout');
+        if (knockoutPage) {
+          knockoutPage.style.display = 'none';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

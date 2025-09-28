@@ -1,0 +1,81 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="form-container">
+  <h2>✏️ 编辑赛事信息</h2>
+  <p class="tournament-info">📅 {{ tournament.season.year }} - 第{{ tournament.type_session_number }}届</p>
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for message in messages %}
+          <div class="flash-message flash-success">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <form method="post">
+    <input type="hidden" name="next" value="{{ request.args.get('next','') }}">
+    
+    <div class="form-group">
+      <label for="season_id">📅 赛季</label>
+      <select id="season_id" name="season_id" required>
+        {% for s in seasons %}
+          <option value="{{ s.season_id }}" {% if s.season_id == tournament.season_id %}selected{% endif %}>{{ s.year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="t_format">⚙️ 赛制</label>
+      <select id="t_format" name="t_format" required>
+        {% for k,v in t_format_labels.items() %}
+          <option value="{{ k }}" {% if tournament.t_format == k %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="t_type">🏅 比赛类型</label>
+      <select id="t_type" name="t_type" required>
+        <option value="1" {% if tournament.type == 1 %}selected{% endif %}>🥇 正赛</option>
+        <option value="2" {% if tournament.type == 2 %}selected{% endif %}>🥈 小赛 (CM250)</option>
+        <option value="3" {% if tournament.type == 3 %}selected{% endif %}>🏆 总决赛</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="player_count">👥 参赛人数</label>
+      <input type="number" id="player_count" name="player_count" min="2" max="32" value="{{ tournament.player_count or 2 }}" required placeholder="请输入参赛人数">
+    </div>
+    
+    <div class="form-group">
+      <label for="signup_deadline">⏰ 报名截止时间（可选）</label>
+      <input type="datetime-local" id="signup_deadline" name="signup_deadline" 
+             value="{% if signup_deadline %}{{ signup_deadline }}{% endif %}" 
+             placeholder="留空表示不限制报名时间">
+      <small class="form-text text-muted">从2025年下半年开始，设置报名截止时间后，参赛选手只能从已报名用户中选择</small>
+    </div>
+    
+    <button type="submit" class="form-button">保存修改</button>
+  </form>
+  
+  <div class="form-links">
+    <p><a href="{{ request.args.get('next', url_for('admin_index')) }}">← 返回</a></p>
+  </div>
+</div>
+
+<style>
+.tournament-info {
+  text-align: center;
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}

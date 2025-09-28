@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <h2>{{ tournament.season.year if tournament.season else tournament.season_id }} - 第{{ tournament.type_session_number }}届</h2>
+  
+  {% if session.get('admin_logged_in') %}
+    <p><a href="/admin-secret">返回后台管理首页</a></p>
+  {% endif %}
+
+  <p>
+    类型
+    &NonBreakingSpace;
+    <b>{% if tournament.type == 1 %}正赛{% elif tournament.type == 2 %}小赛 (CM250){% elif tournament.type == 3 %}总决赛{% else %}未知类型{% endif %}</b>
+  </p>
+  <p>
+    参赛人数
+    &NonBreakingSpace;
+    <b>{{ tournament.player_count or '未设定' }}</b>
+  </p>
+  <p>
+    赛制
+    &NonBreakingSpace;
+    <b>{{ t_format_labels.get(tournament.t_format) if tournament.t_format is not none else '未设置' }}</b>
+  </p>
+  <p>
+    赛季
+    &NonBreakingSpace;
+    <b><a href="/season/{{ tournament.season_id }}">{{ tournament.season.year if tournament.season else tournament.season_id }}</a></b>
+  </p>
+  
+  <!-- 简化的内容，先测试基本功能 -->
+  <div id="group-stage" class="page-content">
+    <h3>小组赛</h3>
+    <p>小组赛内容...</p>
+  </div>
+  
+  <div id="knockout" class="page-content" style="display: none;">
+    <h3>淘汰赛</h3>
+    <p>淘汰赛内容...</p>
+  </div>
+
+{% endblock %}

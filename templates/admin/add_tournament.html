@@ -1,0 +1,106 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="form-container">
+  <h2>🏆 添加单届比赛（届次）</h2>
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for message in messages %}
+          <div class="flash-message flash-success">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <form method="post" novalidate>
+    <div class="form-group">
+      <label for="season_id">📅 赛季</label>
+      <select id="season_id" name="season_id" required>
+        {% for s in seasons %}
+          <option value="{{ s.season_id }}" {% if pre_season_id and s.season_id == pre_season_id %}selected{% endif %}>{{ s.year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="t_type">🏅 比赛类型</label>
+      <select id="t_type" name="t_type" required>
+        <option value="1">🥇 正赛</option>
+        <option value="2">🥈 小赛 (CM250)</option>
+        <option value="3">🏆 总决赛</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="t_format">⚙️ 赛制</label>
+      <select id="t_format" name="t_format" required>
+        {% for k,v in t_format_labels.items() %}
+          <option value="{{ k }}">{{ v }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="player_count">👥 参赛人数</label>
+      <input type="number" id="player_count" name="player_count" min="2" max="32" value="2" required placeholder="请输入参赛人数">
+      <small id="player_count_help" class="form-text text-muted">双败淘汰赛需要2的幂次方人数（4, 8, 16, 32）</small>
+    </div>
+    
+    <div class="form-group">
+      <label for="signup_deadline">⏰ 报名截止时间（可选）</label>
+      <input type="datetime-local" id="signup_deadline" name="signup_deadline" placeholder="留空表示不限制报名时间">
+      <small class="form-text text-muted">从2025年下半年开始，设置报名截止时间后，参赛选手只能从已报名用户中选择</small>
+    </div>
+    
+    <button type="submit" class="form-button">添加届次</button>
+  </form>
+  
+  <div class="form-links">
+    <p><a href="{{ url_for('admin_index') }}">← 返回管理面板</a></p>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tFormatSelect = document.getElementById('t_format');
+  const playerCountInput = document.getElementById('player_count');
+  const playerCountHelp = document.getElementById('player_count_help');
+  
+  function updatePlayerCountValidation() {
+    const selectedFormat = parseInt(tFormatSelect.value);
+    
+    if (selectedFormat === 7) { // 双败淘汰赛
+      playerCountInput.min = 4;
+      playerCountInput.max = 32;
+      playerCountHelp.textContent = '双败淘汰赛需要2的幂次方人数（4, 8, 16, 32）';
+      playerCountHelp.style.color = '#dc3545';
+      
+      // 验证是否为2的幂次方
+      playerCountInput.addEventListener('input', function() {
+        const count = parseInt(this.value);
+        if (count && !isPowerOfTwo(count)) {
+          this.setCustomValidity('双败淘汰赛需要2的幂次方人数（4, 8, 16, 32）');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+    } else {
+      playerCountInput.min = 2;
+      playerCountInput.max = 32;
+      playerCountHelp.textContent = '请输入参赛人数';
+      playerCountHelp.style.color = '#6c757d';
+      playerCountInput.setCustomValidity('');
+    }
+  }
+  
+  function isPowerOfTwo(n) {
+    return n > 0 && (n & (n - 1)) === 0 && n >= 4;
+  }
+  
+  tFormatSelect.addEventListener('change', updatePlayerCountValidation);
+  updatePlayerCountValidation();
+});
+</script>
+{% endblock %}

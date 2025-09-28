@@ -1,0 +1,54 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <h2>编辑比赛 #{{ match.m_id }}</h2>
+  <form method="post">
+    <label>赛季 / 届次:
+      <select name="t_id">
+          {% for t in tournaments %}
+            <option value="{{ t.t_id }}" data-tformat="{{ t.t_format or 0 }}" {% if t.t_id == match.t_id %}selected{% endif %}>{{ t.season.year }} / 第{{ t.type_session_number }}届</option>
+          {% endfor %}
+      </select>
+    </label><br>
+    <label>选手1:
+      <select name="player_1_id">
+        {% for p in players %}
+          <option value="{{ p.player_id }}" {% if p.player_id == match.player_1_id %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>分数: <input name="player_1_score" type="number" value="{{ match.player_1_score }}"></label><br>
+    <label>选手2:
+      <select name="player_2_id">
+        {% for p in players %}
+          <option value="{{ p.player_id }}" {% if p.player_id == match.player_2_id %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>分数: <input name="player_2_score" type="number" value="{{ match.player_2_score }}"></label><br>
+    <label>比赛类型:
+      <select name="m_type" id="m_type_select">
+        {% for k,v in m_type_labels.items() %}
+          <option value="{{ k }}" {% if match.m_type == k %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <script>
+      (function(){
+        const allowed = {{ format_allowed | tojson }};
+        const tSel = document.querySelector('select[name=t_id]');
+        const mSel = document.getElementById('m_type_select');
+        function update(){
+          const opt = tSel.selectedOptions[0];
+          const tf = parseInt(opt.dataset.tformat || '0');
+          const allowedList = allowed[tf] || Object.keys(allowed).flatMap(k=>allowed[k]);
+          for(const o of mSel.options){
+            o.disabled = !allowedList.includes(parseInt(o.value));
+          }
+        }
+        tSel.addEventListener('change', update);
+        update();
+      })();
+    </script>
+    <button type="submit">保存</button>
+  </form>
+{% endblock %}

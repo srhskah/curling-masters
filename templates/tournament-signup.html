@@ -1,0 +1,103 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">赛事报名 - {{ tournament.season.year if tournament.season else tournament.season_id }} - 第{{ tournament.type_session_number }}届</h4>
+                </div>
+                <div class="card-body">
+                    {% if tournament.signup_deadline %}
+                        <div class="alert alert-info">
+                            <strong>报名截止时间：</strong>{{ tournament.signup_deadline.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if not session.get('user_logged_in') %}
+                        <div class="alert alert-warning">
+                            <p>请先 <a href="/login">登录</a> 或 <a href="/register">注册</a> 后再报名</p>
+                        </div>
+                    {% elif not current_user.player_id %}
+                        <div class="alert alert-warning">
+                            <p>请先在 <a href="/user/profile">个人中心</a> 绑定选手后再报名</p>
+                        </div>
+                    {% elif user_signed_up %}
+                        <div class="alert alert-success">
+                            <p>您已成功报名此赛事！</p>
+                            <p>报名时间：{{ user_signup.created_at.strftime('%Y-%m-%d %H:%M') if user_signup.created_at else '未知' }}</p>
+                        </div>
+                    {% elif signup_closed %}
+                        <div class="alert alert-danger">
+                            <p>报名已截止，无法报名此赛事</p>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p><strong>报名选手：</strong>{{ current_user.player.name }}</p>
+                            <p>确认报名此赛事吗？</p>
+                        </div>
+                        
+                        <form id="signupForm">
+                            <div class="form-group mb-3">
+                                <label>滑块验证</label>
+                                <div id="captchaContainer"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>确认报名</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="/tournament/{{ tournament.t_id }}" class="btn btn-secondary">返回赛事页面</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/slider-captcha.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化滑块验证码
+    const captcha = createSliderCaptcha('captchaContainer');
+    
+    // 监听验证成功事件
+    document.getElementById('captchaContainer').addEventListener('captchaSuccess', function() {
+        document.getElementById('submitBtn').disabled = false;
+    });
+    
+    // 表单提交
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!captcha.isVerified) {
+            alert('请完成滑块验证');
+            return;
+        }
+        
+        fetch('/tournament/{{ tournament.t_id }}/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('报名成功！');
+                location.reload();
+            } else {
+                alert('报名失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('报名失败，请重试');
+        });
+    });
+});
+</script>
+{% endblock %}

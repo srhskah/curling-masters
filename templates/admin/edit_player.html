@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="form-container">
+  <h2>✏️ 编辑选手信息</h2>
+  <p class="player-info">👤 {{ player.name }}</p>
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for message in messages %}
+          <div class="flash-message flash-success">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <form method="post">
+    <div class="form-group">
+      <label for="name">🏷️ 选手姓名</label>
+      <input type="text" id="name" name="name" value="{{ player.name }}" required placeholder="请输入选手姓名" maxlength="50">
+    </div>
+    
+    <div class="form-group">
+      <label for="status">📊 选手状态</label>
+      <select id="status" name="status" required>
+        <option value="1" {% if player.status == 1 %}selected{% endif %}>✅ 参与当前排名</option>
+        <option value="2" {% if player.status == 2 %}selected{% endif %}>⏸️ 不参与当前排名</option>
+        <option value="3" {% if player.status == 3 %}selected{% endif %}>❌ 不可用</option>
+      </select>
+    </div>
+    
+    <button type="submit" class="form-button">保存修改</button>
+  </form>
+  
+  <div class="form-links">
+    <p><a href="{{ url_for('admin_index') }}">← 返回管理面板</a></p>
+  </div>
+</div>
+
+<style>
+.player-info {
+  text-align: center;
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}

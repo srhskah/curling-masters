@@ -1,0 +1,231 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <!-- <h2>后台管理</h2> -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class="flashes" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <!-- 分页导航 -->
+  <div class="page-navigation">
+    <button onclick="showPage('players')" class="page-btn active" id="btn-players">选手管理</button>
+    <button onclick="showPage('seasons')" class="page-btn" id="btn-seasons">赛季管理</button>
+    <button onclick="showPage('scores')" class="page-btn" id="btn-scores">积分管理</button>
+    <button onclick="showPage('users')" class="page-btn" id="btn-users">用户管理</button>
+  </div>
+
+  <!-- 选手管理页面 -->
+  <div id="page-players" class="page-content">
+    <section>
+      <!-- <h3>选手排名</h3> -->
+      <div class="admin-actions">
+        <a href="/admin-secret/players/add" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold;">添加选手</a>
+      </div>
+      <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+        <table class="ranking-table admin-players-table">
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>姓名</th>
+              <th>是否参与排名</th>
+              <th>总积分</th>
+              <th>起计分</th>
+              <th>大赛次数</th>
+              <th>小赛次数</th>
+              <th>编辑</th>
+              <th>删除</th>
+            </tr>
+          </thead>
+          <tbody>
+            {# 首先显示 status=1 的选手 #}
+            {% for p in players_grouped[1] %}
+              <tr data-status="1">
+                <td>{{ p.rank or '-' }}</td>
+                <td>
+                  <a href="/player/{{ p.player_id }}">{{ p.name }}</a>
+                </td>
+                <td style="color: #28a745; font-weight: bold;">是</td>
+                <td style="font-weight: bold; color: #667eea;">{{ p.total_score }}</td>
+                <td>{{ p.baseline_score }}</td>
+                <td>{{ p.major_count }}</td>
+                <td>{{ p.minor_count }}</td>
+                <td>
+                  <form method="post" action="/admin-secret/players/{{ p.player_id }}/edit" style="display:inline">
+                    <button type="submit" style="background: linear-gradient(135deg, #17a2b8, #138496); color: white; border: none; padding: 5px; border-radius: 15px; cursor: pointer;">编辑</button>
+                  </form>
+                </td>
+                <td>
+                  <form method="post" action="/admin-secret/players/{{ p.player_id }}/delete" style="display:inline">
+                    <button type="submit" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 5px; border-radius: 15px; cursor: pointer;">删除</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            {# 然后显示 status=2、3 的选手（后置） #}
+            {% for p in players_grouped[2] %}
+              <tr data-status="2">
+                <td>-</td>
+                <td>
+                  <a href="/player/{{ p.player_id }}">{{ p.name }}</a>
+                </td>
+                <td style="color: #ffc107; font-weight: bold;">不参与</td>
+                <td style="font-weight: bold; color: #667eea;">{{ p.total_score }}</td>
+                <td>{{ p.baseline_score }}</td>
+                <td>{{ p.major_count }}</td>
+                <td>{{ p.minor_count }}</td>
+                <td>
+                  <form method="post" action="/admin-secret/players/{{ p.player_id }}/edit" style="display:inline">
+                    <button type="submit" style="background: linear-gradient(135deg, #17a2b8, #138496); color: white; border: none; padding: 5px; border-radius: 15px; cursor: pointer;">编辑</button>
+                  </form>
+                </td>
+                <td>
+                  <form method="post" action="/admin-secret/players/{{ p.player_id }}/delete" style="display:inline">
+                    <button type="submit" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 5px; border-radius: 15px; cursor: pointer;">删除</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            {% for p in players_grouped[3] %}
+              <tr data-status="3">
+                <td>-</td>
+                <td>{{ p.name }}</td>
+                <td style="color: #6c757d; font-weight: bold;">不可用</td>
+                <td style="font-weight: bold; color: #667eea;">{{ p.total_score }}</td>
+                <td>{{ p.baseline_score }}</td>
+                <td>{{ p.major_count }}</td>
+                <td>{{ p.minor_count }}</td>
+                <td>
+                  <form method="post" action="/admin-secret/players/{{ p.player_id }}/edit" style="display:inline">
+                    <button type="submit" style="background: linear-gradient(135deg, #17a2b8, #138496); color: white; border: none; padding: 5px; border-radius: 15px; cursor: pointer;">编辑</button>
+                  </form>
+                </td>
+                <td>
+                  <form method="post" action="/admin-secret/players/{{ p.player_id }}/delete" style="display:inline">
+                    <button type="submit" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 5px; border-radius: 15px; cursor: pointer;">删除</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            {% if not (players_grouped[1] or players_grouped[2] or players_grouped[3]) %}
+              <tr><td colspan="9" style="text-align: center; color: #666; padding: 40px;">暂无选手</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- 赛季管理页面 -->
+  <div id="page-seasons" class="page-content" style="display: none; text-align: center;">
+    <section>
+      <!-- <h3>赛季</h3> -->
+      <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+        <table class="ranking-table admin-seasons-table">
+          <thead>
+            <tr>
+              <th>赛季时间</th>
+              <th>届数</th>
+              <th>参赛选手数</th>
+              <!-- <th>操作</th> -->
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in seasons %}
+              <tr>
+                <td><a href="/season/{{ s.season_id }}">{{ s.year }}</a></td>
+                <td style="font-weight: bold; color: #667eea;">
+                  {{ (s.tournaments|default([]))|length }}
+                </td>
+                <td><!-- 暂时留空 --></td>
+                <!-- <td>
+                  <a href="/admin-secret/tournaments/add?season_id={{ s.season_id }}" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 8px 16px; border-radius: 15px; text-decoration: none; font-weight: bold;">添加届次</a>
+                </td> -->
+              </tr>
+            {% else %}
+              <tr><td colspan="4" style="text-align: center; color: #666; padding: 40px;">暂无赛季</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin: 20px 0;">
+        <a href="/admin-secret/seasons/add" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold;">添加赛季</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- 积分管理页面 -->
+  <div id="page-scores" class="page-content" style="display: none; text-align: center;">
+    <section>
+      <!-- <h3>积分管理</h3> -->
+      <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <form method="post" action="/admin-secret/tournaments/calculate-all-scores" style="display: inline;">
+          <button type="submit" onclick="return confirm('确定要重新计算所有赛事的积分吗？')" style="background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px;">重新计算所有积分</button>
+        </form>
+        <p style="margin: 15px 0 0 0; color: #666; font-size: 14px;"><small>注意：保存排名时会自动计算积分，此功能用于重新计算已有排名的赛事积分</small></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- 用户管理页面 -->
+  <div id="page-users" class="page-content" style="display: none;">
+    <section>
+      <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+        <table class="ranking-table admin-users-table">
+          <thead>
+            <tr>
+              <th>用户ID</th>
+              <th>用户名</th>
+              <th>绑定选手</th>
+              <th>角色</th>
+              <th>注册时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+              <tr>
+                <td>{{ user.uid }}</td>
+                <td>{{ user.username }}</td>
+                <td>
+                  {% if user.player %}
+                    <a href="/player/{{ user.player.player_id }}">{{ user.player.name }}</a>
+                  {% else %}
+                    <span style="color: #6c757d;">未绑定</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if user.role == 1 %}
+                    <span style="color: #dc3545; font-weight: bold;">管理员</span>
+                  {% else %}
+                    <span style="color: #28a745; font-weight: bold;">普通用户</span>
+                  {% endif %}
+                </td>
+                <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '未知' }}</td>
+                <td>
+                  {% if user.player %}
+                    <form method="post" action="/admin-secret/users/{{ user.uid }}/unbind-player" style="display:inline">
+                      <button type="submit" onclick="return confirm('确定要解绑该用户的选手吗？')" style="background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer;">解绑选手</button>
+                    </form>
+                  {% else %}
+                    <span style="color: #6c757d;">无操作</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="6" style="text-align: center; color: #666; padding: 40px;">暂无用户</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- <div style="margin: 40px 0; text-align: center;">
+    <a href="/admin-secret/logout" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold;">退出登录</a>
+  </div> -->
+{% endblock %}

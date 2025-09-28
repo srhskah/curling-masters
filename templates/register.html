@@ -1,0 +1,164 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">用户注册</h4>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm">
+                        <div class="form-group mb-3">
+                            <label for="username">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <small class="form-text text-muted">用户名长度3-20个字符，只能包含字母、数字、下划线</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="password">密码</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <small class="form-text text-muted">密码长度6-20个字符</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="confirmPassword">确认密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="playerSelect">绑定选手（可选）</label>
+                            <select class="form-control" id="playerSelect" name="player_id">
+                                <option value="">暂不绑定选手</option>
+                            </select>
+                            <small class="form-text text-muted">每个用户只能绑定1名选手，可在个人中心修改</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label>滑块验证</label>
+                            <div id="captchaContainer"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>注册</button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>已有账号？<a href="/login">立即登录</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/slider-captcha.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化滑块验证码
+    const captcha = createSliderCaptcha('captchaContainer');
+    
+    // 监听验证成功事件
+    document.getElementById('captchaContainer').addEventListener('captchaSuccess', function() {
+        document.getElementById('submitBtn').disabled = false;
+    });
+    
+    // 加载选手列表
+    loadPlayers();
+    
+    // 表单验证
+    const form = document.getElementById('registerForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
+    // 用户名验证
+    usernameInput.addEventListener('input', function() {
+        const username = this.value;
+        const regex = /^[a-zA-Z0-9_]{3,20}$/;
+        if (!regex.test(username)) {
+            this.setCustomValidity('用户名长度3-20个字符，只能包含字母、数字、下划线');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // 密码验证
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        if (password.length < 6 || password.length > 20) {
+            this.setCustomValidity('密码长度6-20个字符');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // 确认密码验证
+    confirmPasswordInput.addEventListener('input', function() {
+        const password = passwordInput.value;
+        const confirmPassword = this.value;
+        if (password !== confirmPassword) {
+            this.setCustomValidity('两次输入的密码不一致');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // 表单提交
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!captcha.isVerified) {
+            alert('请完成滑块验证');
+            return;
+        }
+        
+        const formData = new FormData(form);
+        const data = {
+            username: formData.get('username'),
+            password: formData.get('password'),
+            player_id: formData.get('player_id') || null
+        };
+        
+        fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('注册成功！');
+                window.location.href = '/login';
+            } else {
+                alert('注册失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('注册失败，请重试');
+        });
+    });
+    
+    function loadPlayers() {
+        fetch('/api/players')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('playerSelect');
+            data.players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.player_id;
+                option.textContent = player.name;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading players:', error);
+        });
+    }
+});
+</script>
+{% endblock %}

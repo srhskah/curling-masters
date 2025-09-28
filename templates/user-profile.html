@@ -1,0 +1,480 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">个人中心</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="user-info-section">
+                                <h5 class="section-title">
+                                    <i class="fas fa-user"></i> 用户信息
+                                </h5>
+                                <div class="info-item">
+                                    <span class="info-label">用户名：</span>
+                                    <span class="info-value">{{ user.username }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">注册时间：</span>
+                                    <span class="info-value">{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '未知' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">用户角色：</span>
+                                    <span class="info-value">
+                                        {% if user.role == 1 %}
+                                            <span class="role-badge admin">管理员</span>
+                                        {% else %}
+                                            <span class="role-badge user">普通用户</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="player-info-section">
+                                <h5 class="section-title">
+                                    <i class="fas fa-trophy"></i> 绑定选手
+                                </h5>
+                                {% if user.player %}
+                                    <div class="info-item">
+                                        <span class="info-label">选手姓名：</span>
+                                        <span class="info-value player-name">{{ user.player.name }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">选手ID：</span>
+                                        <span class="info-value">{{ user.player.player_id }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">绑定状态：</span>
+                                        <span class="info-value">
+                                            <span class="status-badge bound">已绑定</span>
+                                        </span>
+                                    </div>
+                                    <div class="info-note">
+                                        <i class="fas fa-info-circle"></i>
+                                        <small>如需解绑选手，请联系管理员</small>
+                                    </div>
+                                {% else %}
+                                    <div class="info-item">
+                                        <span class="info-label">绑定状态：</span>
+                                        <span class="info-value">
+                                            <span class="status-badge unbound">未绑定</span>
+                                        </span>
+                                    </div>
+                                    <div class="bind-action">
+                                        <button class="btn btn-primary btn-sm" onclick="showBindPlayerModal()">
+                                            <i class="fas fa-link"></i> 绑定选手
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user.player %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>选手参赛记录</h5>
+                            
+                            <!-- 筛选控件 -->
+                            <div class="ranking-toggle">
+                                <div class="toggle-switch">
+                                    <input type="radio" id="seasonAll" name="seasonFilter" value="" checked onchange="filterHistory()">
+                                    <label for="seasonAll">全部赛季</label>
+                                    {% for season in seasons %}
+                                    <input type="radio" id="season{{ season.year }}" name="seasonFilter" value="{{ season.year }}" onchange="filterHistory()">
+                                    <label for="season{{ season.year }}">{{ season.year }}</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-toggle">
+                                <div class="toggle-switch">
+                                    <input type="radio" id="typeAll" name="typeFilter" value="" checked onchange="filterHistory()">
+                                    <label for="typeAll">全部类型</label>
+                                    <input type="radio" id="type1" name="typeFilter" value="1" onchange="filterHistory()">
+                                    <label for="type1">正赛</label>
+                                    <input type="radio" id="type2" name="typeFilter" value="2" onchange="filterHistory()">
+                                    <label for="type2">小赛</label>
+                                    <input type="radio" id="type3" name="typeFilter" value="3" onchange="filterHistory()">
+                                    <label for="type3">总决赛</label>
+                                </div>
+                            </div>
+                            
+                            <!-- 按赛季和类型分组的参赛记录 -->
+                            <div id="historyContent">
+                                {% for season_year, season_data in player_rankings_by_season.items() %}
+                                <div class="season-section mb-4" data-season="{{ season_year }}">
+                                    <h6 class="season-header">{{ season_year }}赛季</h6>
+                                    {% for tournament_type, tournaments in season_data.items() %}
+                                    <div class="tournament-type-section mb-3" data-type="{{ tournament_type }}">
+                                        <h6 class="tournament-type-header">
+                                            {% if tournament_type == 1 %}正赛
+                                            {% elif tournament_type == 2 %}小赛
+                                            {% elif tournament_type == 3 %}总决赛
+                                            {% else %}其他赛事
+                                            {% endif %}
+                                        </h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>届次</th>
+                                                        <th>赛制</th>
+                                                        <th>排名</th>
+                                                        <th>积分</th>
+                                                        <th>操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for ranking in tournaments %}
+                                                    <tr>
+                                                        <td>第{{ ranking.tournament.type_session_number }}届</td>
+                                                        <td>
+                                                            {% if ranking.tournament.t_format in t_format_labels %}
+                                                                {{ t_format_labels[ranking.tournament.t_format] }}
+                                                            {% else %}
+                                                                其他
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if ranking.ranks == 1 %}
+                                                                <span class="rank-number gold">🥇 {{ ranking.ranks }}</span>
+                                                            {% elif ranking.ranks == 2 %}
+                                                                <span class="rank-number silver">🥈 {{ ranking.ranks }}</span>
+                                                            {% elif ranking.ranks == 3 %}
+                                                                <span class="rank-number bronze">🥉 {{ ranking.ranks }}</span>
+                                                            {% elif ranking.ranks == 4 %}
+                                                                <span class="rank-number fourth">4️⃣ {{ ranking.ranks }}</span>
+                                                            {% else %}
+                                                                <span class="rank-number">{{ ranking.ranks }}</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>{{ ranking.scores if ranking.scores else '-' }}</td>
+                                                        <td>
+                                                            <a href="/tournament/{{ ranking.tournament.t_id }}" class="btn btn-sm btn-outline-primary">查看详情</a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>历史场次</h5>
+                            
+                            <!-- 场次筛选控件 -->
+                            <div class="ranking-toggle">
+                                <div class="toggle-switch">
+                                    <input type="radio" id="matchSeasonAll" name="matchSeasonFilter" value="" checked onchange="filterMatches()">
+                                    <label for="matchSeasonAll">全部赛季</label>
+                                    {% for season in seasons %}
+                                    <input type="radio" id="matchSeason{{ season.year }}" name="matchSeasonFilter" value="{{ season.year }}" onchange="filterMatches()">
+                                    <label for="matchSeason{{ season.year }}">{{ season.year }}</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-toggle">
+                                <div class="toggle-switch">
+                                    <input type="radio" id="matchTypeAll" name="matchTypeFilter" value="" checked onchange="filterMatches()">
+                                    <label for="matchTypeAll">全部类型</label>
+                                    <input type="radio" id="matchType1" name="matchTypeFilter" value="1" onchange="filterMatches()">
+                                    <label for="matchType1">正赛</label>
+                                    <input type="radio" id="matchType2" name="matchTypeFilter" value="2" onchange="filterMatches()">
+                                    <label for="matchType2">小赛</label>
+                                    <input type="radio" id="matchType3" name="matchTypeFilter" value="3" onchange="filterMatches()">
+                                    <label for="matchType3">总决赛</label>
+                                </div>
+                            </div>
+                            
+                            <!-- 按赛季和类型分组的历史场次 -->
+                            <div id="matchesContent">
+                                {% for season_year, season_data in player_matches_by_season.items() %}
+                                <div class="season-section mb-4" data-season="{{ season_year }}">
+                                    <h6 class="season-header">{{ season_year }}赛季</h6>
+                                    {% for tournament_type, matches in season_data.items() %}
+                                    <div class="tournament-type-section mb-3" data-type="{{ tournament_type }}">
+                                        <h6 class="tournament-type-header">
+                                            {% if tournament_type == 1 %}正赛
+                                            {% elif tournament_type == 2 %}小赛
+                                            {% elif tournament_type == 3 %}总决赛
+                                            {% else %}其他赛事
+                                            {% endif %}
+                                        </h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>届次</th>
+                                                        <th>对手</th>
+                                                        <th>比分</th>
+                                                        <th>结果</th>
+                                                        <th>操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for match in matches %}
+                                                    <tr>
+                                                        <td>第{{ match.tournament.type_session_number }}届</td>
+                                                        <td>
+                                                            {% if match.player_1_id == user.player.player_id %}
+                                                                {{ match.player2.name }}
+                                                            {% else %}
+                                                                {{ match.player1.name }}
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if match.player_1_id == user.player.player_id %}
+                                                                <span class="score-display">{{ match.player_1_score }} : {{ match.player_2_score }}</span>
+                                                            {% else %}
+                                                                <span class="score-display">{{ match.player_2_score }} : {{ match.player_1_score }}</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if match.winner_id() == user.player.player_id %}
+                                                                <span class="match-result win">胜利</span>
+                                                            {% elif match.winner_id() == None %}
+                                                                <span class="match-result draw">平局</span>
+                                                            {% else %}
+                                                                <span class="match-result loss">失败</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <a href="/tournament/{{ match.tournament.t_id }}" class="btn btn-sm btn-outline-primary">查看详情</a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 绑定选手模态框 -->
+<!-- <div class="modal fade" id="bindPlayerModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">绑定选手</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="bindPlayerForm">
+                    <div class="form-group">
+                        <label for="playerSelect">选择选手</label>
+                        <select class="form-control" id="playerSelect" name="player_id" required>
+                            <option value="">请选择选手</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>滑块验证</label>
+                        <div id="captchaContainer"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="bindPlayerBtn" disabled>绑定</button>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<script src="/static/slider-captcha.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载选手列表
+    loadPlayers();
+    
+    // 绑定选手表单提交
+    document.getElementById('bindPlayerBtn').addEventListener('click', function() {
+        const playerId = document.getElementById('playerSelect').value;
+        if (!playerId) {
+            alert('请选择选手');
+            return;
+        }
+        
+        if (!window.bindCaptcha || !window.bindCaptcha.isVerified) {
+            alert('请完成滑块验证');
+            return;
+        }
+        
+        fetch('/user/bind-player', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                player_id: parseInt(playerId)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('绑定成功！');
+                location.reload();
+            } else {
+                alert('绑定失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('绑定失败，请重试');
+        });
+    });
+    
+    function loadPlayers() {
+        fetch('/api/players')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('playerSelect');
+            data.players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.player_id;
+                option.textContent = player.name;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading players:', error);
+        });
+    }
+});
+
+function showBindPlayerModal() {
+    $('#bindPlayerModal').modal('show');
+    
+    // 初始化滑块验证码
+    setTimeout(() => {
+        window.bindCaptcha = createSliderCaptcha('captchaContainer');
+        
+        document.getElementById('captchaContainer').addEventListener('captchaSuccess', function() {
+            document.getElementById('bindPlayerBtn').disabled = false;
+        });
+    }, 100);
+}
+
+function filterHistory() {
+    const seasonFilter = document.querySelector('input[name="seasonFilter"]:checked').value;
+    const typeFilter = document.querySelector('input[name="typeFilter"]:checked').value;
+    
+    const seasonSections = document.querySelectorAll('#historyContent .season-section');
+    
+    seasonSections.forEach(section => {
+        const seasonYear = section.getAttribute('data-season');
+        let showSeason = true;
+        
+        // 赛季筛选
+        if (seasonFilter && seasonYear !== seasonFilter) {
+            showSeason = false;
+        }
+        
+        if (showSeason) {
+            const typeSections = section.querySelectorAll('.tournament-type-section');
+            let hasVisibleTypes = false;
+            
+            typeSections.forEach(typeSection => {
+                const tournamentType = typeSection.getAttribute('data-type');
+                let showType = true;
+                
+                // 类型筛选
+                if (typeFilter && tournamentType !== typeFilter) {
+                    showType = false;
+                }
+                
+                if (showType) {
+                    typeSection.style.display = 'block';
+                    hasVisibleTypes = true;
+                } else {
+                    typeSection.style.display = 'none';
+                }
+            });
+            
+            if (hasVisibleTypes) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        } else {
+            section.style.display = 'none';
+        }
+    });
+}
+
+function filterMatches() {
+    const seasonFilter = document.querySelector('input[name="matchSeasonFilter"]:checked').value;
+    const typeFilter = document.querySelector('input[name="matchTypeFilter"]:checked').value;
+    
+    const seasonSections = document.querySelectorAll('#matchesContent .season-section');
+    
+    seasonSections.forEach(section => {
+        const seasonYear = section.getAttribute('data-season');
+        let showSeason = true;
+        
+        // 赛季筛选
+        if (seasonFilter && seasonYear !== seasonFilter) {
+            showSeason = false;
+        }
+        
+        if (showSeason) {
+            const typeSections = section.querySelectorAll('.tournament-type-section');
+            let hasVisibleTypes = false;
+            
+            typeSections.forEach(typeSection => {
+                const tournamentType = typeSection.getAttribute('data-type');
+                let showType = true;
+                
+                // 类型筛选
+                if (typeFilter && tournamentType !== typeFilter) {
+                    showType = false;
+                }
+                
+                if (showType) {
+                    typeSection.style.display = 'block';
+                    hasVisibleTypes = true;
+                } else {
+                    typeSection.style.display = 'none';
+                }
+            });
+            
+            if (hasVisibleTypes) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        } else {
+            section.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

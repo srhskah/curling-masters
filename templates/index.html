@@ -1,0 +1,207 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <!-- 分页导航 -->
+  <div class="page-navigation">
+    <button onclick="showPage('seasons')" class="page-btn active" id="btn-seasons">赛季</button>
+    <button onclick="showPage('rankings')" class="page-btn" id="btn-rankings">总积分排名</button>
+    <button onclick="showPage('medals')" class="page-btn" id="btn-medals">奖牌榜</button>
+  </div>
+
+  <!-- 赛季页面 -->
+  <div id="page-seasons" class="page-content">
+    <!-- <h2>赛季</h2> -->
+    <div class="seasons-grid">
+    {% for s in seasons %}
+        <div class="season-card">
+          <a href="/season/{{ s.season_id }}">
+            <h3>{{ s.year }}</h3>
+            <p>点击查看详情</p>
+          </a>
+        </div>
+      {% else %}
+        <div style="grid-column: 1 / -1; text-align: center; color: #666; padding: 40px;">
+          <p>暂无赛季数据</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 总积分排名页面 -->
+  <div id="page-rankings" class="page-content" style="display: none;">
+    {% if player_rankings %}
+      <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>选手</th>
+              <th>总积分</th>
+              <th>起计分</th>
+              <th>参赛次数</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for player in player_rankings %}
+              <tr>
+                {% if player.rank == 1 %}
+                  <td class="rank-1">{{ player.rank }}</td>
+                {% elif player.rank == 2 %}
+                  <td class="rank-2">{{ player.rank }}</td>
+                {% elif player.rank == 3 %}
+                  <td class="rank-3">{{ player.rank }}</td>
+                {% else %}
+                  <td>{{ player.rank }}</td>
+                {% endif %}
+                <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                <td style="font-weight: bold; color: #667eea;">{{ player.total_score }}</td>
+                <td>{{ player.baseline_score }}</td>
+                <td>{{ player.total_count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="text-align: center; color: #666; padding: 40px;">暂无排名数据</p>
+    {% endif %}
+  </div>
+
+  <!-- 奖牌榜页面 -->
+  <div id="page-medals" class="page-content" style="display: none;">
+    <!-- <h2>奖牌榜</h2> -->
+    
+    <!-- 奖牌榜导航 -->
+    <div class="medal-navigation" style="margin: 20px 0; text-align: center;">
+      <button onclick="showMedalType('major')" class="page-btn active" id="btn-major-medals">大赛奖牌榜</button>
+      <button onclick="showMedalType('minor')" class="page-btn" id="btn-minor-medals">小赛奖牌榜</button>
+      <button onclick="showMedalType('final')" class="page-btn" id="btn-final-medals">总决赛奖牌榜</button>
+    </div>
+    
+    <!-- 大赛奖牌榜 -->
+    <div id="medal-major" class="medal-content">
+      {% if major_medal_standings %}
+        <!-- <h3>大赛奖牌榜</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="medal-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>选手</th>
+                <th>🥇</th>
+                <th>🥈</th>
+                <th>🥉</th>
+                <th>总计</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in major_medal_standings %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                  <td class="gold">{{ player.gold }}</td>
+                  <td class="silver">{{ player.silver }}</td>
+                  <td class="bronze">{{ player.bronze }}</td>
+                  <td class="total">{{ player.total }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无大赛奖牌数据</p>
+      {% endif %}
+    </div>
+    
+    <!-- 小赛奖牌榜 -->
+    <div id="medal-minor" class="medal-content" style="display: none;">
+      {% if minor_medal_standings %}
+        <!-- <h3>小赛奖牌榜</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="medal-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>选手</th>
+                <th>🥇</th>
+                <th>🥈</th>
+                <th>🥉</th>
+                <th>总计</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in minor_medal_standings %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                  <td class="gold">{{ player.gold }}</td>
+                  <td class="silver">{{ player.silver }}</td>
+                  <td class="bronze">{{ player.bronze }}</td>
+                  <td class="total">{{ player.total }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无小赛奖牌数据</p>
+      {% endif %}
+    </div>
+    
+    <!-- 总决赛奖牌榜 -->
+    <div id="medal-final" class="medal-content" style="display: none;">
+      {% if final_medal_standings %}
+        <!-- <h3>总决赛奖牌榜</h3> -->
+        <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+          <table class="medal-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>选手</th>
+                <th>🥇</th>
+                <th>🥈</th>
+                <th>🥉</th>
+                <th>总计</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in final_medal_standings %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><a href="/player/{{ player.player_id }}">{{ player.name }}</a></td>
+                  <td class="gold">{{ player.gold }}</td>
+                  <td class="silver">{{ player.silver }}</td>
+                  <td class="bronze">{{ player.bronze }}</td>
+                  <td class="total">{{ player.total }}</td>
+                </tr>
+    {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">暂无总决赛奖牌数据</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function showMedalType(type) {
+      // 隐藏所有奖牌内容
+      const medalContents = document.querySelectorAll('.medal-content');
+      medalContents.forEach(content => {
+        content.style.display = 'none';
+      });
+      
+      // 移除所有按钮的active类
+      const buttons = document.querySelectorAll('.medal-navigation .page-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // 显示选中的奖牌内容
+      document.getElementById('medal-' + type).style.display = 'block';
+      
+      // 激活选中的按钮
+      document.getElementById('btn-' + type + '-medals').classList.add('active');
+    }
+  </script>
+{% endblock %}

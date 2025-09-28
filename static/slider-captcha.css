@@ -1,0 +1,53 @@
+/* 滑块验证码样式 */
+.slider-captcha-container {
+    margin: 20px 0;
+}
+
+.slider-track {
+    position: relative;
+    overflow: hidden;
+}
+
+.slider-button {
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.slider-button:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.slider-button:active {
+    transform: scale(0.95);
+}
+
+.slider-icon {
+    transition: all 0.3s ease;
+}
+
+.slider-success {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .slider-captcha-container {
+        width: 100% !important;
+        max-width: 300px;
+    }
+    
+    .slider-text {
+        font-size: 12px !important;
+    }
+}

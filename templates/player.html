@@ -1,0 +1,1187 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <div class="tournament-info">
+    <h2>{{ player.name }}</h2>
+  </div>
+
+  <!-- 分页导航 -->
+  <div class="page-navigation" style="margin: 20px 0; text-align: center;">
+    <button onclick="showPage('stats')" class="page-btn active" id="btn-stats">总积分信息</button>
+    <button onclick="showPage('history')" class="page-btn" id="btn-history">历届参赛记录</button>
+    <button onclick="showPage('medals')" class="page-btn" id="btn-medals">奖牌统计</button>
+    <button onclick="showPage('matches')" class="page-btn" id="btn-matches">比赛记录</button>
+  </div>
+
+  <!-- 总积分信息页面 -->
+  <div id="page-stats" class="page-content" style="text-align: center;">
+    {% if player_stats %}
+    <!-- <h3>总积分信息</h3> -->
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>总排名</th>
+            <th>总积分</th>
+            <th>起计分</th>
+            <th>大赛次数</th>
+            <th>小赛次数</th>
+            <th>总参赛次数</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ player_stats.rank }}</td>
+            <td>{{ player_stats.total_score }}</td>
+            <td style="background-color: #d4edda; font-weight: bold;">{{ player_stats.baseline_score }}</td>
+            <td>{{ player_stats.major_count }}</td>
+            <td>{{ player_stats.minor_count }}</td>
+            <td>{{ player_stats.total_count }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- 管理员功能 -->
+    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 10px; margin: 20px 0;">
+      <h4 style="margin-top: 0; color: #667eea; text-align: center;">管理员功能</h4>
+      <div class="admin-button-group">
+        <a href="/admin-secret/players/{{ player.player_id }}/edit" 
+           style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold; display: inline-block;">
+          编辑选手信息
+        </a>
+        <a href="/admin-secret/players/{{ player.player_id }}delete" 
+           onclick="return confirm('确定要删除选手 {{ player.name }} 吗？此操作不可撤销！')"
+           style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold; display: inline-block;">
+          删除选手
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- 历届参赛记录页面 -->
+  <div id="page-history" class="page-content" style="display: none;text-align: center;">
+    {% if tournament_history %}
+    <!-- <h3>历届参赛记录</h3> -->
+    
+    <!-- 大赛记录 -->
+    {% set major_tournaments = tournament_history|selectattr('1', 'equalto', 1)|list %}
+    {% if major_tournaments %}
+    <h4>大赛</h4>
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>赛季</th>
+            <th>届次</th>
+            <th>排名</th>
+            <th>积分</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t_id, t_type, year, session_num, ranks, scores in major_tournaments %}
+            <tr>
+              <td>{{ year }}</td>
+              <td>{{ session_num }}</td>
+              <!-- <td>{{ ranks }}</td> -->
+              {% if ranks == 1 %}
+                <td class="rank-1">{{ ranks }}</td>
+              {% elif ranks == 2 %}
+                <td class="rank-2">{{ ranks }}</td>
+              {% elif ranks == 3 %}
+                <td class="rank-3">{{ ranks }}</td>
+              {% else %}
+                <td>{{ ranks }}</td>
+              {% endif %}
+              {% if scores == tenth_highest_score %}
+                <td style="background-color: #d4edda; font-weight: bold;">{{ scores }}</td>
+              {% else %}
+                <td>{{ scores }}</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    
+    <!-- 小赛记录 -->
+    {% set minor_tournaments = tournament_history|selectattr('1', 'equalto', 2)|list %}
+    {% if minor_tournaments %}
+    <h4>小赛</h4>
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>赛季</th>
+            <th>届次</th>
+            <th>排名</th>
+            <th>积分</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t_id, t_type, year, session_num, ranks, scores in minor_tournaments %}
+            <tr>
+              <td>{{ year }}</td>
+              <td>{{ session_num }}</td>
+              <!-- <td>{{ ranks }}</td> -->
+              {% if ranks == 1 %}
+                <td class="rank-1">{{ ranks }}</td>
+              {% elif ranks == 2 %}
+                <td class="rank-2">{{ ranks }}</td>
+              {% elif ranks == 3 %}
+                <td class="rank-3">{{ ranks }}</td>
+              {% else %}
+                <td>{{ ranks }}</td>
+              {% endif %}
+              {% if scores == tenth_highest_score %}
+                <td style="background-color: #d4edda; font-weight: bold;">{{ scores }}</td>
+              {% else %}
+                <td>{{ scores }}</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    
+    <!-- 总决赛记录 -->
+    {% set final_tournaments = tournament_history|selectattr('1', 'equalto', 3)|list %}
+    {% if final_tournaments %}
+    <h4>总决赛</h4>
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>赛季</th>
+            <th>届次</th>
+            <th>排名</th>
+            <th>积分</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t_id, t_type, year, session_num, ranks, scores in final_tournaments %}
+            <tr>
+              <td>{{ year }}</td>
+              <td>{{ session_num }}</td>
+              <!-- <td>{{ ranks }}</td> -->
+              {% if ranks == 1 %}
+                <td class="rank-1">{{ ranks }}</td>
+              {% elif ranks == 2 %}
+                <td class="rank-2">{{ ranks }}</td>
+              {% elif ranks == 3 %}
+                <td class="rank-3">{{ ranks }}</td>
+              {% else %}
+                <td>{{ ranks }}</td>
+              {% endif %}
+              {% if scores == tenth_highest_score %}
+                <td style="background-color: #d4edda; font-weight: bold;">{{ scores }}</td>
+              {% else %}
+                <td>{{ scores }}</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- 奖牌统计页面 -->
+  <div id="page-medals" class="page-content" style="display: none;text-align: center;">
+    <!-- <h3>奖牌统计</h3> -->
+    
+    <!-- 大赛奖牌统计 -->
+    <h4>大赛奖牌</h4>
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="medal-table">
+        <thead>
+          <tr>
+            <th>🥇</th>
+            <th>🥈</th>
+            <th>🥉</th>
+            <th>总计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ player_medal_stats.major.gold }}</td>
+            <td>{{ player_medal_stats.major.silver }}</td>
+            <td>{{ player_medal_stats.major.bronze }}</td>
+            <td>{{ player_medal_stats.major.gold + player_medal_stats.major.silver + player_medal_stats.major.bronze }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- 小赛奖牌统计 -->
+    <h4>小赛奖牌</h4>
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="medal-table">
+        <thead>
+          <tr>
+            <th>🥇</th>
+            <th>🥈</th>
+            <th>🥉</th>
+            <th>总计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ player_medal_stats.minor.gold }}</td>
+            <td>{{ player_medal_stats.minor.silver }}</td>
+            <td>{{ player_medal_stats.minor.bronze }}</td>
+            <td>{{ player_medal_stats.minor.gold + player_medal_stats.minor.silver + player_medal_stats.minor.bronze }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- 总决赛奖牌统计 -->
+    <h4>总决赛奖牌</h4>
+    <div class="table-container" style="overflow-x: auto; margin: 20px 0;">
+      <table class="medal-table">
+        <thead>
+          <tr>
+            <th>🥇</th>
+            <th>🥈</th>
+            <th>🥉</th>
+            <th>总计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ player_medal_stats.final.gold }}</td>
+            <td>{{ player_medal_stats.final.silver }}</td>
+            <td>{{ player_medal_stats.final.bronze }}</td>
+            <td>{{ player_medal_stats.final.gold + player_medal_stats.final.silver + player_medal_stats.final.bronze }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 比赛记录页面 -->
+  <div id="page-matches" class="page-content" style="display: none;">
+  <!-- <h3>比赛记录</h3> -->
+    
+  {% if matches %}
+      <!-- 筛选和对战记录切换 -->
+      <div class="matches-controls" style="margin: 15px 0;">
+        <!-- 筛选控件 -->
+        <div class="season-filter">
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label for="season-select">赛季</label>
+              <select id="season-select" onchange="filterMatchesBySeason()">
+                <option value="">全部</option>
+                {% for season_year in matches|map(attribute='tournament.season.year')|unique|sort(reverse=true) %}
+                  <option value="{{ season_year }}">{{ season_year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="tournament-type-select">比赛类型</label>
+              <select id="tournament-type-select" onchange="filterMatchesByType()">
+                <option value="">全部类型</option>
+                <option value="1">正赛</option>
+                <option value="2">小赛</option>
+                <option value="3">总决赛</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="session-select">届次</label>
+              <select id="session-select" onchange="filterMatchesBySession()">
+                <option value="">全部届次</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="opponent-select">对手</label>
+              <select id="opponent-select" onchange="filterMatchesByOpponent()">
+                <option value="">全部对手</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 对战记录切换 -->
+        <div class="h2h-toggle" style="margin-bottom: 15px; padding: 10px; background-color: #e3f2fd; border-radius: 5px;">
+          <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <label>
+              <input type="radio" name="view-mode" value="all" checked onchange="switchViewMode('all')">
+              全部比赛
+            </label>
+            <label>
+              <input type="radio" name="view-mode" value="h2h" onchange="switchViewMode('h2h')">
+              对战记录
+            </label>
+            <select id="h2h-opponent-select" onchange="showH2HRecord()" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 3px; display: none;">
+              <option value="">请选择对手</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 对战统计显示区域 -->
+      <div id="h2h-stats" style="display: none; margin-bottom: 20px;">
+        <div class="h2h-summary" style="padding: 15px; background-color: #e8f5e8; border-radius: 5px;">
+          <h4 id="h2h-title">对战统计</h4>
+          <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+            <div class="stat-item">
+              <span style="font-size: 24px; font-weight: bold; color: #4caf50;" id="h2h-wins">0</span>
+              <span style="margin-left: 5px;">胜</span>
+            </div>
+            <div class="stat-item">
+              <span style="font-size: 24px; font-weight: bold; color: #ff9800;" id="h2h-draws">0</span>
+              <span style="margin-left: 5px;">平</span>
+            </div>
+            <div class="stat-item">
+              <span style="font-size: 24px; font-weight: bold; color: #f44336;" id="h2h-losses">0</span>
+              <span style="margin-left: 5px;">负</span>
+            </div>
+            <div class="stat-item">
+              <span style="font-size: 18px; color: #666;" id="h2h-total">总计: 0场</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 所有对手快速选择 -->
+      <div id="all-opponents" style="display: none; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h4 style="margin: 0;">所有对手</h4>
+          <button id="reset-view-btn" onclick="resetView()" style="display: none; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+            返回全部
+          </button>
+        </div>
+        <div id="opponents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+        </div>
+      </div>
+      
+      <!-- 按赛季分页的比赛记录 -->
+      {% for season_year in matches|map(attribute='tournament.season.year')|unique|sort(reverse=true) %}
+        <div class="season-matches" data-season="{{ season_year }}" style="margin-bottom: 30px;">
+          <h4 style="color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px;">{{ season_year }}</h4>
+          
+          {% set season_matches = matches|selectattr('tournament.season.year', 'equalto', season_year)|list %}
+          <div class="season-tournaments-container">
+            {% for t_id, group in season_matches|groupby('tournament.t_id') %}
+      {% set tour = group[0].tournament %}
+            {% set display_idx = tour.type_session_number %}
+            
+            <div class="tournament-matches" data-tournament-type="{{ tour.type }}" data-session="{{ display_idx }}" style="margin-bottom: 20px;">
+              <!-- <h5 style="margin: 10px 0 5px 0;">
+                <a href="/tournament/{{ tour.t_id }}" style="text-decoration: none; color: #333;">
+                  {% if tour.type == 1 %}正赛{% elif tour.type == 2 %}小赛{% elif tour.type == 3 %}总决赛{% endif %} - 第{{ display_idx or tour.t_id }}届
+                </a>
+              </h5> -->
+              
+              <!-- 统一表格显示所有比赛 -->
+              {% set all_tournament_matches = [] %}
+              {% for match in group %}
+                {% if match.player_1_score is not none and match.player_2_score is not none and not (match.player_1_score == 0 and match.player_2_score == 0) and not (match.player_1_score == -1 and match.player_2_score == -1) %}
+                  {% set _ = all_tournament_matches.append(match) %}
+          {% endif %}
+        {% endfor %}
+              
+              {% if all_tournament_matches|length > 0 %}
+                <div class="tournament-matches-header" style="margin-bottom: 15px;">
+                  <h5 style="margin: 10px 0 5px 0; text-align: center;">
+                    <a href="/tournament/{{ tour.t_id }}" style="text-decoration: none; color: #333;">
+                      {% if tour.type == 1 %}正赛{% elif tour.type == 2 %}小赛{% elif tour.type == 3 %}总决赛{% endif %} - 第{{ display_idx or tour.t_id }}届
+                    </a>
+                  </h5>
+                </div>
+                <div class="matches-grid">
+                  {% for m in all_tournament_matches %}
+                    {% set is_player1 = m.player_1_id == player.player_id %}
+                    {% set is_player2 = m.player_2_id == player.player_id %}
+                    {% set opponent_id = m.player_2_id if is_player1 else m.player_1_id %}
+                    {% set opponent_name = m.player2.name if is_player1 else m.player1.name %}
+                    
+                    {% if is_player1 %}
+                      <!-- 选手是player1，正常显示 -->
+                      {% if m.m_type == 8 %}
+                        <div class="knockout-card-quarterfinal match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><strong>{{ m.player1.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_2_id }}">{{ m.player2.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 9 %}
+                        <div class="knockout-card-qualifier match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><strong>{{ m.player1.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_2_id }}">{{ m.player2.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 10 %}
+                        <div class="knockout-card-semifinal match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><strong>{{ m.player1.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_2_id }}">{{ m.player2.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 11 %}
+                        <div class="knockout-card-bronze match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><strong>{{ m.player1.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_2_id }}">{{ m.player2.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 12 %}
+                        <div class="knockout-card-gold match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><strong>{{ m.player1.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_2_id }}">{{ m.player2.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% else %}
+                        <!-- 小组赛或其他类型比赛 -->
+                        <div class="match-card match-row" data-opponent="{{ opponent_id }}">
+                          <div class="match-header">
+                            <span class="match-title">{% if m.m_type == 14 %}附加赛{% else %}第{{ loop.index }}场{% endif %}</span>
+                          </div>
+                          <div class="match-players">
+                            <div class="player-info">
+                              <span class="player-name"><strong>{{ m.player1.name }}</strong></span>
+                              <span class="player-score">{{ m.player_1_score }}</span>
+                            </div>
+                            <div class="vs-divider">VS</div>
+                            <div class="player-info">
+                              <span class="player-name"><a href="/player/{{ m.player_2_id }}">{{ m.player2.name }}</a></span>
+                              <span class="player-score">{{ m.player_2_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% elif is_player2 %}
+                      <!-- 选手是player2，反转显示 -->
+                      {% if m.m_type == 8 %}
+                        <div class="knockout-card-quarterfinal match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><strong>{{ m.player2.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_1_id }}">{{ m.player1.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 9 %}
+                        <div class="knockout-card-qualifier match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><strong>{{ m.player2.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_1_id }}">{{ m.player1.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 10 %}
+                        <div class="knockout-card-semifinal match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><strong>{{ m.player2.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_1_id }}">{{ m.player1.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 11 %}
+                        <div class="knockout-card-bronze match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><strong>{{ m.player2.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_1_id }}">{{ m.player1.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif m.m_type == 12 %}
+                        <div class="knockout-card-gold match-row" data-opponent="{{ opponent_id }}">
+                          <div class="knockout-card-players">
+                            <div class="knockout-card-player {% if m.player_2_score > m.player_1_score %}winner{% endif %}">
+                              <span><strong>{{ m.player2.name }}</strong></span>
+                              <span class="knockout-card-score">{{ m.player_2_score }}</span>
+                            </div>
+                            <div class="knockout-card-player {% if m.player_1_score > m.player_2_score %}winner{% endif %}">
+                              <span><a href="/player/{{ m.player_1_id }}">{{ m.player1.name }}</a></span>
+                              <span class="knockout-card-score">{{ m.player_1_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% else %}
+                        <!-- 小组赛或其他类型比赛 -->
+                        <div class="match-card match-row" data-opponent="{{ opponent_id }}">
+                          <div class="match-header">
+                            <span class="match-title">{% if m.m_type == 14 %}附加赛{% else %}第{{ loop.index }}场{% endif %}</span>
+                          </div>
+                          <div class="match-players">
+                            <div class="player-info">
+                              <span class="player-name"><strong>{{ m.player2.name }}</strong></span>
+                              <span class="player-score">{{ m.player_2_score }}</span>
+                            </div>
+                            <div class="vs-divider">VS</div>
+                            <div class="player-info">
+                              <span class="player-name"><a href="/player/{{ m.player_1_id }}">{{ m.player1.name }}</a></span>
+                              <span class="player-score">{{ m.player_1_score }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p style="color: #666; font-style: italic; margin: 10px 0;">暂无比赛记录</p>
+              {% endif %}
+            </div>
+      {% endfor %}
+          </div>
+        </div>
+    {% endfor %}
+  {% else %}
+      <p>暂无比赛记录</p>
+  {% endif %}
+  </div>
+
+  <script>
+    // 比赛记录筛选功能
+    function filterMatchesBySeason() {
+      const seasonSelect = document.getElementById('season-select');
+      const selectedSeason = seasonSelect.value;
+      
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      seasonMatches.forEach(season => {
+        if (!selectedSeason || season.getAttribute('data-season') === selectedSeason) {
+          season.style.display = 'block';
+          // 检查该赛季是否有可见的比赛
+          checkAndHideEmptyTournaments(season);
+        } else {
+          season.style.display = 'none';
+        }
+      });
+      
+      // 更新届次选项
+      updateSessionOptions();
+    }
+    
+    function filterMatchesByType() {
+      const typeSelect = document.getElementById('tournament-type-select');
+      const selectedType = typeSelect.value;
+      
+      const tournamentMatches = document.querySelectorAll('.tournament-matches');
+      tournamentMatches.forEach(tournament => {
+        const seasonDiv = tournament.closest('.season-matches');
+        if (seasonDiv.style.display === 'none') { // 只处理可见赛季的比赛
+          tournament.style.display = 'none';
+          return;
+        }
+        
+        if (!selectedType || tournament.getAttribute('data-tournament-type') === selectedType) {
+          tournament.style.display = 'block';
+          // 检查该赛事是否有可见的比赛
+          checkAndHideEmptyTournament(tournament);
+        } else {
+          tournament.style.display = 'none';
+        }
+      });
+      
+      // 更新届次选项
+      updateSessionOptions();
+    }
+    
+    function filterMatchesBySession() {
+      const sessionSelect = document.getElementById('session-select');
+      const selectedSession = sessionSelect.value;
+      
+      const tournamentMatches = document.querySelectorAll('.tournament-matches');
+      tournamentMatches.forEach(tournament => {
+        const seasonDiv = tournament.closest('.season-matches');
+        if (seasonDiv.style.display === 'none') { // 只处理可见赛季的比赛
+          tournament.style.display = 'none';
+          return;
+        }
+        
+        if (!selectedSession || tournament.getAttribute('data-session') === selectedSession) {
+          tournament.style.display = 'block';
+          // 检查该赛事是否有可见的比赛
+          checkAndHideEmptyTournament(tournament);
+        } else {
+          tournament.style.display = 'none';
+        }
+      });
+    }
+
+    function filterMatchesByOpponent() {
+      const opponentSelect = document.getElementById('opponent-select');
+      const selectedOpponent = opponentSelect.value;
+      
+      const matchRows = document.querySelectorAll('.match-row');
+      matchRows.forEach(row => {
+        const tournamentDiv = row.closest('.tournament-matches');
+        const seasonDiv = tournamentDiv.closest('.season-matches');
+        
+        // 只处理可见的赛季和赛事中的比赛
+        if (seasonDiv.style.display === 'none' || tournamentDiv.style.display === 'none') {
+          row.style.display = 'none';
+          return;
+        }
+        
+        if (!selectedOpponent || row.getAttribute('data-opponent') === selectedOpponent) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      
+      // 检查并隐藏没有可见比赛的赛事
+      const tournamentMatches = document.querySelectorAll('.tournament-matches');
+      tournamentMatches.forEach(tournament => {
+        const visibleMatches = tournament.querySelectorAll('.match-row:not([style*="none"])');
+        if (visibleMatches.length === 0) {
+          tournament.style.display = 'none';
+        } else {
+          tournament.style.display = 'block';
+        }
+      });
+      
+      // 检查并隐藏没有可见赛事的赛季
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      seasonMatches.forEach(season => {
+        const visibleTournaments = season.querySelectorAll('.tournament-matches:not([style*="none"])');
+        if (visibleTournaments.length === 0) {
+          season.style.display = 'none';
+        } else {
+          season.style.display = 'block';
+        }
+      });
+    }
+    
+    // 检查并隐藏空的赛事表格
+    function checkAndHideEmptyTournament(tournament) {
+      const visibleMatches = tournament.querySelectorAll('.match-row:not([style*="none"])');
+      if (visibleMatches.length === 0) {
+        tournament.style.display = 'none';
+      }
+    }
+    
+    // 检查并隐藏空的赛季表格
+    function checkAndHideEmptyTournaments(season) {
+      const visibleTournaments = season.querySelectorAll('.tournament-matches:not([style*="none"])');
+      if (visibleTournaments.length === 0) {
+        season.style.display = 'none';
+      }
+    }
+    
+    function updateSessionOptions() {
+      const sessionSelect = document.getElementById('session-select');
+      const opponentSelect = document.getElementById('opponent-select');
+      
+      // 清空现有选项
+      sessionSelect.innerHTML = '<option value="">全部届次</option>';
+      opponentSelect.innerHTML = '<option value="">全部对手</option>';
+      
+      // 获取当前可见的比赛
+      const visibleTournaments = document.querySelectorAll('.tournament-matches[style*="block"], .tournament-matches:not([style*="none"])');
+      const sessions = new Set();
+      const opponents = new Map();
+      
+      visibleTournaments.forEach(tournament => {
+        const session = tournament.getAttribute('data-session');
+        if (session) {
+          sessions.add(session);
+        }
+        
+        // 收集对手信息
+        const matchRows = tournament.querySelectorAll('.match-row');
+        matchRows.forEach(row => {
+          const opponentId = row.getAttribute('data-opponent');
+          // 处理淘汰赛卡片和普通比赛卡片的不同结构
+          let opponentName = '';
+          if (row.classList.contains('knockout-card-quarterfinal') || 
+              row.classList.contains('knockout-card-qualifier') || 
+              row.classList.contains('knockout-card-semifinal') || 
+              row.classList.contains('knockout-card-bronze') || 
+              row.classList.contains('knockout-card-gold')) {
+            // 淘汰赛卡片结构
+            const playerSpans = row.querySelectorAll('.knockout-card-player span');
+            for (let span of playerSpans) {
+              if (span.querySelector('a')) {
+                opponentName = span.querySelector('a').textContent;
+                break;
+              }
+            }
+          } else {
+            // 普通比赛卡片结构
+            opponentName = row.querySelector('.player-name a')?.textContent || row.querySelector('.player-name')?.textContent;
+          }
+          if (opponentId && opponentName) {
+            opponents.set(opponentId, opponentName.trim());
+          }
+        });
+      });
+      
+      // 添加届次选项
+      Array.from(sessions).sort((a, b) => parseInt(a) - parseInt(b)).forEach(session => {
+        const option = document.createElement('option');
+        option.value = session;
+        option.textContent = `第${session}届`;
+        sessionSelect.appendChild(option);
+      });
+      
+      // 添加对手选项
+      Array.from(opponents.entries()).sort((a, b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        opponentSelect.appendChild(option);
+      });
+    }
+    
+    // 视图模式切换
+    function switchViewMode(mode) {
+      const seasonFilter = document.querySelector('.season-filter');
+      const h2hToggle = document.querySelector('.h2h-toggle');
+      const h2hOpponentSelect = document.getElementById('h2h-opponent-select');
+      const h2hStats = document.getElementById('h2h-stats');
+      const allOpponents = document.getElementById('all-opponents');
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      
+      if (mode === 'all') {
+        // 全部比赛模式
+        seasonFilter.style.display = 'block';
+        h2hOpponentSelect.style.display = 'none';
+        h2hStats.style.display = 'none';
+        allOpponents.style.display = 'none';
+        
+        // 显示所有赛季比赛
+        seasonMatches.forEach(season => {
+          season.style.display = 'block';
+        });
+        
+        // 重置筛选
+        document.getElementById('season-select').value = '';
+        document.getElementById('tournament-type-select').value = '';
+        document.getElementById('session-select').value = '';
+        document.getElementById('opponent-select').value = '';
+        
+        // 显示所有比赛
+        const matchRows = document.querySelectorAll('.match-row');
+        matchRows.forEach(row => {
+          row.style.display = '';
+        });
+        
+      } else if (mode === 'h2h') {
+        // 对战记录模式
+        seasonFilter.style.display = 'none';
+        h2hOpponentSelect.style.display = 'block';
+        allOpponents.style.display = 'block';
+        
+        // 隐藏所有赛季比赛
+        seasonMatches.forEach(season => {
+          season.style.display = 'none';
+        });
+        
+        // 初始化对手选择
+        if (h2hOpponentSelect.children.length === 1) {
+          initializeH2H();
+        }
+      }
+    }
+    
+    // 对战记录功能
+    function initializeH2H() {
+      const h2hOpponentSelect = document.getElementById('h2h-opponent-select');
+      const opponentsGrid = document.getElementById('opponents-grid');
+      
+      // 清空现有选项
+      h2hOpponentSelect.innerHTML = '<option value="">请选择对手</option>';
+      opponentsGrid.innerHTML = '';
+      
+      // 收集所有对手
+      const opponents = new Map();
+      const matchRows = document.querySelectorAll('.match-row');
+      
+      matchRows.forEach(row => {
+        const opponentId = row.getAttribute('data-opponent');
+        // 处理淘汰赛卡片和普通比赛卡片的不同结构
+        let opponentName = '';
+        if (row.classList.contains('knockout-card-quarterfinal') || 
+            row.classList.contains('knockout-card-qualifier') || 
+            row.classList.contains('knockout-card-semifinal') || 
+            row.classList.contains('knockout-card-bronze') || 
+            row.classList.contains('knockout-card-gold')) {
+          // 淘汰赛卡片结构
+          const playerSpans = row.querySelectorAll('.knockout-card-player span');
+          for (let span of playerSpans) {
+            if (span.querySelector('a')) {
+              opponentName = span.querySelector('a').textContent;
+              break;
+            }
+          }
+        } else {
+          // 普通比赛卡片结构
+          opponentName = row.querySelector('.player-name a')?.textContent || row.querySelector('.player-name')?.textContent;
+        }
+        if (opponentId && opponentName) {
+          opponents.set(opponentId, opponentName.trim());
+        }
+      });
+      
+      // 填充对手选择器
+      Array.from(opponents.entries()).sort((a, b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        h2hOpponentSelect.appendChild(option);
+      });
+      
+      // 生成对手网格
+      Array.from(opponents.entries()).forEach(([id, name]) => {
+        const stats = calculateH2HStats(id);
+        const card = document.createElement('div');
+        card.className = 'opponent-card';
+        card.setAttribute('data-opponent-id', id);
+        card.style.cssText = 'padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center; cursor: pointer; background-color: white; transition: all 0.3s ease;';
+        card.onclick = () => {
+          console.log('点击了对手卡片:', name, 'ID:', id);
+          
+          // 重置所有卡片
+          document.querySelectorAll('.opponent-card').forEach(c => {
+            c.style.backgroundColor = 'white';
+            c.style.borderColor = '#ddd';
+            c.style.transform = 'none';
+            // 重置卡片内容为原始统计
+            const originalStats = calculateH2HStats(c.getAttribute('data-opponent-id'));
+            const statsDiv = c.querySelector('div:last-child');
+            if (statsDiv) {
+              statsDiv.innerHTML = `${originalStats.wins}胜 ${originalStats.draws}平 ${originalStats.losses}负`;
+            }
+          });
+          
+          // 高亮当前卡片并显示详细统计
+          card.style.backgroundColor = '#e3f2fd';
+          card.style.borderColor = '#2196f3';
+          card.style.transform = 'scale(1.05)';
+          
+          // 更新卡片内容显示详细统计
+          const stats = calculateH2HStats(id);
+          const statsDiv = card.querySelector('div:last-child');
+          if (statsDiv) {
+            statsDiv.innerHTML = `
+              <div style="font-size: 14px; font-weight: bold; color: #2196f3; margin-bottom: 2px;">
+                ${stats.wins}胜 ${stats.draws}平 ${stats.losses}负
+              </div>
+              <div style="font-size: 11px; color: #666;">
+                总计: ${stats.wins + stats.draws + stats.losses}场
+              </div>
+            `;
+          }
+          
+          // 隐藏上方的div
+          const seasonFilter = document.querySelector('.season-filter');
+          const h2hToggle = document.querySelector('.h2h-toggle');
+          if (seasonFilter) seasonFilter.style.display = 'none';
+          if (h2hToggle) h2hToggle.style.display = 'none';
+          
+          // 显示重置按钮
+          const resetBtn = document.getElementById('reset-view-btn');
+          if (resetBtn) resetBtn.style.display = 'block';
+          
+          // 直接显示对战信息（不显示h2h-stats）
+          console.log('调用showH2HRecordDirectly');
+          showH2HRecordDirectly(id, name);
+        };
+        
+        card.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 5px;">${name}</div>
+          <div style="font-size: 12px; color: #666;">
+            ${stats.wins}胜 ${stats.draws}平 ${stats.losses}负
+          </div>
+        `;
+        
+        opponentsGrid.appendChild(card);
+      });
+    }
+    
+    function calculateH2HStats(opponentId) {
+      const matchRows = document.querySelectorAll(`.match-row[data-opponent="${opponentId}"]`);
+      let wins = 0, draws = 0, losses = 0;
+      
+      matchRows.forEach(row => {
+        let score1 = 0, score2 = 0;
+        
+        // 处理淘汰赛卡片和普通比赛卡片的不同结构
+        if (row.classList.contains('knockout-card-quarterfinal') || 
+            row.classList.contains('knockout-card-qualifier') || 
+            row.classList.contains('knockout-card-semifinal') || 
+            row.classList.contains('knockout-card-bronze') || 
+            row.classList.contains('knockout-card-gold')) {
+          // 淘汰赛卡片结构
+          const scores = row.querySelectorAll('.knockout-card-score');
+          if (scores.length >= 2) {
+            score1 = parseInt(scores[0].textContent) || 0;
+            score2 = parseInt(scores[1].textContent) || 0;
+          }
+        } else {
+          // 普通比赛卡片结构
+          const scores = row.querySelectorAll('.player-score');
+          if (scores.length >= 2) {
+            score1 = parseInt(scores[0].textContent) || 0;
+            score2 = parseInt(scores[1].textContent) || 0;
+          }
+        }
+        
+        if (score1 > score2) {
+          wins++;
+        } else if (score1 < score2) {
+          losses++;
+        } else {
+          draws++;
+        }
+      });
+      
+      return { wins, draws, losses };
+    }
+    
+    function showH2HRecordDirectly(opponentId, opponentName) {
+      console.log('showH2HRecordDirectly 被调用:', opponentId, opponentName);
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      console.log('找到的赛季数量:', seasonMatches.length);
+      
+      // 显示包含该对手的赛季比赛
+      seasonMatches.forEach(season => {
+        const hasOpponentMatches = season.querySelector(`.match-row[data-opponent="${opponentId}"]`);
+        console.log('赛季是否有对手比赛:', !!hasOpponentMatches);
+        
+        if (hasOpponentMatches) {
+          season.style.display = 'block';
+          
+          // 只显示与该对手的比赛
+          const allMatchRows = season.querySelectorAll('.match-row');
+          allMatchRows.forEach(row => {
+            if (row.getAttribute('data-opponent') === opponentId) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+          
+          // 检查并隐藏没有可见比赛的赛事表格
+          const tournamentMatches = season.querySelectorAll('.tournament-matches');
+          tournamentMatches.forEach(tournament => {
+            const visibleMatches = tournament.querySelectorAll('.match-row:not([style*="none"])');
+            if (visibleMatches.length === 0) {
+              tournament.style.display = 'none';
+            } else {
+              tournament.style.display = 'block';
+            }
+          });
+        } else {
+          // 如果该赛季没有与该对手的比赛，隐藏整个赛季
+          season.style.display = 'none';
+        }
+      });
+    }
+
+    function showH2HRecord() {
+      const opponentSelect = document.getElementById('h2h-opponent-select');
+      const opponentId = opponentSelect.value;
+      const h2hStats = document.getElementById('h2h-stats');
+      const h2hTitle = document.getElementById('h2h-title');
+      const h2hWins = document.getElementById('h2h-wins');
+      const h2hDraws = document.getElementById('h2h-draws');
+      const h2hLosses = document.getElementById('h2h-losses');
+      const h2hTotal = document.getElementById('h2h-total');
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      
+      if (!opponentId) {
+        h2hStats.style.display = 'none';
+        // 隐藏所有赛季比赛
+        seasonMatches.forEach(season => {
+          season.style.display = 'none';
+        });
+        return;
+      }
+      
+      const stats = calculateH2HStats(opponentId);
+      const opponentName = opponentSelect.options[opponentSelect.selectedIndex].text;
+      
+      // 更新统计
+      h2hTitle.textContent = `与 ${opponentName} 的对战统计`;
+      h2hWins.textContent = stats.wins;
+      h2hDraws.textContent = stats.draws;
+      h2hLosses.textContent = stats.losses;
+      h2hTotal.textContent = `总计: ${stats.wins + stats.draws + stats.losses}场`;
+      
+      // 显示对战统计
+      h2hStats.style.display = 'block';
+      
+      // 显示包含该对手的赛季比赛
+      seasonMatches.forEach(season => {
+        const hasOpponentMatches = season.querySelector(`.match-row[data-opponent="${opponentId}"]`);
+        if (hasOpponentMatches) {
+          season.style.display = 'block';
+          
+          // 只显示与该对手的比赛
+          const allMatchRows = season.querySelectorAll('.match-row');
+          allMatchRows.forEach(row => {
+            if (row.getAttribute('data-opponent') === opponentId) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+          
+          // 检查并隐藏没有可见比赛的赛事表格
+          const tournamentMatches = season.querySelectorAll('.tournament-matches');
+          tournamentMatches.forEach(tournament => {
+            const visibleMatches = tournament.querySelectorAll('.match-row:not([style*="none"])');
+            if (visibleMatches.length === 0) {
+              tournament.style.display = 'none';
+            } else {
+              tournament.style.display = 'block';
+            }
+          });
+    } else {
+          season.style.display = 'none';
+        }
+      });
+    }
+    
+    // 重置视图到原始状态
+    function resetView() {
+      // 重置对手卡片样式和内容
+      document.querySelectorAll('.opponent-card').forEach(c => {
+        c.style.backgroundColor = 'white';
+        c.style.borderColor = '#ddd';
+        c.style.transform = 'none';
+        
+        // 重置卡片内容为原始统计
+        const originalStats = calculateH2HStats(c.getAttribute('data-opponent-id'));
+        const statsDiv = c.querySelector('div:last-child');
+        if (statsDiv) {
+          statsDiv.innerHTML = `${originalStats.wins}胜 ${originalStats.draws}平 ${originalStats.losses}负`;
+        }
+      });
+      
+      // 隐藏重置按钮
+      const resetBtn = document.getElementById('reset-view-btn');
+      if (resetBtn) resetBtn.style.display = 'none';
+      
+      // 显示上方的div
+      const seasonFilter = document.querySelector('.season-filter');
+      const h2hToggle = document.querySelector('.h2h-toggle');
+      if (seasonFilter) seasonFilter.style.display = 'block';
+      if (h2hToggle) h2hToggle.style.display = 'block';
+      
+      // 隐藏对战统计
+      const h2hStats = document.getElementById('h2h-stats');
+      if (h2hStats) h2hStats.style.display = 'none';
+      
+      // 重置对手选择器
+      const h2hOpponentSelect = document.getElementById('h2h-opponent-select');
+      if (h2hOpponentSelect) h2hOpponentSelect.value = '';
+      
+      // 显示所有赛季和比赛
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      seasonMatches.forEach(season => {
+        season.style.display = 'block';
+        
+        const tournamentMatches = season.querySelectorAll('.tournament-matches');
+        tournamentMatches.forEach(tournament => {
+          tournament.style.display = 'block';
+        });
+        
+        const matchRows = season.querySelectorAll('.match-row');
+        matchRows.forEach(row => {
+          row.style.display = '';
+        });
+      });
+    }
+    
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      updateSessionOptions();
+      initializeH2H();
+      
+      // 初始加载时隐藏空的表格
+      const tournamentMatches = document.querySelectorAll('.tournament-matches');
+      tournamentMatches.forEach(tournament => {
+        const visibleMatches = tournament.querySelectorAll('.match-row:not([style*="none"])');
+        if (visibleMatches.length === 0) {
+          tournament.style.display = 'none';
+        }
+      });
+      
+      const seasonMatches = document.querySelectorAll('.season-matches');
+      seasonMatches.forEach(season => {
+        const visibleTournaments = season.querySelectorAll('.tournament-matches:not([style*="none"])');
+        if (visibleTournaments.length === 0) {
+          season.style.display = 'none';
+        }
+      });
+      
+      // 恢复分页状态（如果有）
+      restorePageState();
+    });
+    
+    // 恢复分页状态
+    function restorePageState() {
+      const savedTab = localStorage.getItem('playerPageTab');
+      if (savedTab) {
+        showPage(savedTab);
+        // 清除保存的状态
+        localStorage.removeItem('playerPageTab');
+      }
+    }
+  </script>
+{% endblock %}

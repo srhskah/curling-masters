@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Curling Masters</title>
+    <link rel="stylesheet" href="/static/styles.css?v=23">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%220.9em%22  font-size=%2290%22>🥌</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1><a href="/">🥌 Curling Masters</a></h1>
+      </header>
+      
+       <nav class="user-nav">
+         {% if session.get('admin_logged_in') %}
+           <span class="admin-status">管理员：{{ session.get('admin_username') }}</span>
+           <a href="/admin-secret">管理后台</a>
+           <a href="/admin-secret/logout">退出</a>
+         {% elif session.get('user_logged_in') %}
+           <span>欢迎，{{ session.get('username') }}！</span>
+           <a href="/user/profile">个人中心</a>
+           <a href="/logout">退出</a>
+         {% else %}
+           <a href="/login">登录</a>
+           <a href="/register">注册</a>
+         {% endif %}
+       </nav>
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+      <footer>
+        <small>
+          © 2025 Curling Masters. All rights reserved.
+        </small>
+      </footer>
+    </div>
+    <script src="/static/common.js"></script>
+  </body>
+</html>

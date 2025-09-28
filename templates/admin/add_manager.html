@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <h2>添加管理员</h2>
+  <form method="post">
+    <label>用户名: <input name="username"></label><br>
+    <label>密码: <input name="password" type="password"></label><br>
+    <button type="submit">添加</button>
+  </form>
+{% endblock %}
