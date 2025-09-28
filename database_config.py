@@ -66,17 +66,13 @@ def get_turso_config():
     if not turso_url or not turso_token:
         raise ValueError("Turso配置不完整，请设置TURSO_URL和TURSO_AUTH_TOKEN环境变量")
     
-    # 构建Turso连接URL
-    # 暂时使用SQLite兼容方式连接Turso（通过HTTP API）
-    # 注意：这是临时方案，正式部署时需要使用libsql驱动
-    print("⚠️  警告: 当前使用SQLite兼容模式连接Turso，功能可能受限")
-    print("   建议在Netlify等支持libsql的环境中部署")
+    # 使用libsql-sqlalchemy驱动连接Turso
+    # 根据Turso官方文档：https://docs.turso.tech/sdk/ts/quickstart
+    database_uri = f"libsql://{turso_url.replace('libsql://', '')}?authToken={turso_token}"
     
-    # 临时使用本地SQLite作为fallback
-    import tempfile
-    temp_db = os.path.join(tempfile.gettempdir(), 'turso_fallback.db')
-    database_uri = f"sqlite:///{temp_db}"
-    print(f"   临时数据库: {temp_db}")
+    print(f"✅ 使用libsql驱动连接Turso数据库")
+    print(f"   数据库URL: {turso_url}")
+    print(f"   认证令牌: {'已设置' if turso_token else '未设置'}")
     
     return {
         'SQLALCHEMY_DATABASE_URI': database_uri,
@@ -84,6 +80,7 @@ def get_turso_config():
             'poolclass': NullPool,
             'connect_args': {
                 'timeout': 30,
+                'check_same_thread': False
             }
         }
     }

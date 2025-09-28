@@ -7,18 +7,65 @@ Netlify Functions - Flask应用适配器
 
 import os
 import sys
+import json
 from serverless_wsgi import handle_request
 
 # 添加项目根目录到Python路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-
-# 导入Flask应用
-from app import app
+project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+sys.path.insert(0, project_root)
 
 # 确保使用Turso数据库（生产环境默认）
 if not os.getenv('DATABASE_TYPE'):
     os.environ['DATABASE_TYPE'] = 'turso'
 
-def handler(event, context):
-    """Netlify Functions处理器"""
-    return handle_request(app, event, context)
+# 设置Flask环境
+os.environ['FLASK_ENV'] = 'production'
+
+try:
+    # 导入Flask应用
+    from app import app
+    
+    def handler(event, context):
+        """Netlify Functions处理器"""
+        try:
+            return handle_request(app, event, context)
+        except Exception as e:
+            print(f"Handler error: {str(e)}")
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'text/html; charset=utf-8'
+                },
+                'body': f'''
+                <html>
+                <head><title>服务器错误</title></head>
+                <body>
+                    <h1>服务器内部错误</h1>
+                    <p>错误信息: {str(e)}</p>
+                    <p>请检查应用配置或联系管理员。</p>
+                </body>
+                </html>
+                '''
+            }
+            
+except ImportError as e:
+    print(f"Import error: {str(e)}")
+    
+    def handler(event, context):
+        """错误处理器"""
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'text/html; charset=utf-8'
+            },
+            'body': f'''
+            <html>
+            <head><title>应用加载失败</title></head>
+            <body>
+                <h1>应用加载失败</h1>
+                <p>错误信息: {str(e)}</p>
+                <p>请检查应用配置。</p>
+            </body>
+            </html>
+            '''
+        }
