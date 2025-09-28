@@ -5,4 +5,5 @@ python-dotenv==1.0.0
 apsw==3.50.4.0
 libsql-client==0.2.0
 serverless-wsgi==3.1.0
-libsql-sqlalchemy==0.1.0
+git+https://github.com/tursodatabase/libsql-sqlalchemy.git@main
+
