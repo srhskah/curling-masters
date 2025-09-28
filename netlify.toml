@@ -3,7 +3,7 @@
   command = "pip install -r requirements.txt"
   
   # 发布目录
-  publish = "netlify"
+  publish = "."
   
   # 环境变量
   [build.environment]
@@ -19,7 +19,6 @@
   from = "/*"
   to = "/.netlify/functions/app"
   status = 200
-  force = true
 
 # 函数配置
 [functions]
