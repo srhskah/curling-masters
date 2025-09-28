@@ -4,4 +4,4 @@ Flask-SQLAlchemy==3.0.3
 python-dotenv==1.0.0
 apsw==3.50.4.0
 libsql-client==0.2.0
-serverless-wsgi==0.8.2
+serverless-wsgi==3.1.0
