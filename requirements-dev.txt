@@ -3,5 +3,5 @@ SQLAlchemy>=2.0.36
 Flask-SQLAlchemy>=3.0.3
 python-dotenv>=1.0.0
 apsw>=3.50.4.0
-flask-cors>=4.0.0
-gunicorn>=21.2.0
+libsql-client==0.2.0
+serverless-wsgi>=3.1.0

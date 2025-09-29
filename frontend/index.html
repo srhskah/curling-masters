@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冰壶大师赛 - 前后端分离测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .loading {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .success {
+            color: #90EE90;
+            font-weight: bold;
+        }
+        .error {
+            color: #FFB6C1;
+            font-weight: bold;
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏒 冰壶大师赛</h1>
+            <p>前后端分离架构测试页面</p>
+        </div>
+
+        <div class="status-card">
+            <h3>🔧 API 连接状态</h3>
+            <div id="api-status">
+                <p class="loading">正在检查 API 连接...</p>
+            </div>
+            <button class="btn" onclick="checkHealth()">重新检查</button>
+            <button class="btn" onclick="runTest()">运行测试</button>
+        </div>
+
+        <div class="status-card">
+            <h3>📊 系统信息</h3>
+            <div id="config-info">
+                <p class="loading">正在获取系统配置...</p>
+            </div>
+        </div>
+
+        <div class="status-card">
+            <h3>📝 使用说明</h3>
+            <ul>
+                <li><strong>健康检查</strong>：验证前后端连接状态</li>
+                <li><strong>API 测试</strong>：验证后端 API 功能</li>
+                <li><strong>配置信息</strong>：查看数据库和环境配置</li>
+            </ul>
+            <p><strong>下一步</strong>：根据测试结果决定部署方案</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://curling-masters-backend.onrender.com'; // 后端地址
+        
+        async function checkHealth() {
+            const statusDiv = document.getElementById('api-status');
+            statusDiv.innerHTML = '<p class="loading">正在检查 API 连接...</p>';
+            
+            try {
+                const_response = await fetch(`${API_BASE}/api/health`);
+                const data = await _response.json();
+                
+                statusDiv.innerHTML = `
+                    <p class="success">✅ API 连接正常！</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <p class="error">❌ API 连接失败</p>
+                    <p>错误信息: ${error.message}</p>
+                    <p>请检查后端服务是否已部署</p>
+                `;
+            }
+        }
+        
+        async function runTest() {
+            const statusDiv = document.getElementById('api-status');
+            statusDiv.innerHTML = '<p class="loading">正在进行 API 测试...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/test`);
+                const data = await response.json();
+                
+                statusDiv.innerHTML = `
+                    <p class="success">✅ API 测试成功！</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <p class="error">❌ API 测试失败</p>
+                    <p>错误信息: ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function loadConfig() {
+            const configDiv = document.getElementById('config-info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/config`);
+                const data = await response.json();
+                
+                configDiv.innerHTML = `
+                    <p class="success">✅ 配置信息获取成功</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                configDiv.innerHTML = `
+                    <p class="error">❌ 配置信息获取失败</p>
+                    <p>错误信息: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // 页面加载时自动检查
+        document.addEventListener('DOMContentLoaded', function() {
+            checkHealth();
+            loadConfig();
+        });
+    </script>
+</body>
+</html>
