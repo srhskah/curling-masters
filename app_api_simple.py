@@ -13,6 +13,24 @@ from database_config import get_database_config
 # 确保注册 libsql 方言
 try:
     import sqlalchemy_libsql  # noqa: F401
+    # 优先尝试官方注册入口（0.2.0 起应已提供 entrypoint）
+    from sqlalchemy.dialects import registry as _registry
+    try:
+        _registry.load('libsql')
+    except Exception:
+        # 兜底注册（兼容旧版本的路径）
+        for module_path, obj_name in [
+            ('sqlalchemy_libsql', 'dialect'),
+            ('sqlalchemy_libsql.dialect', 'dialect'),
+            ('sqlalchemy_libsql.libsql', 'dialect'),
+            ('sqlalchemy_libsql.libsql', 'LibSQLDialect'),
+        ]:
+            try:
+                _registry.register('libsql', module_path, obj_name)
+                _registry.load('libsql')
+                break
+            except Exception:
+                continue
 except Exception as _e:
     # 延迟到 /api/turso-test 再反馈详细错误
     pass

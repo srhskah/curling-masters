@@ -101,7 +101,11 @@ def get_turso_config():
         'SQLALCHEMY_ENGINE_OPTIONS': {
             'poolclass': NullPool,
             'connect_args': {
-                'timeout': 30
+                'timeout': 30,
+                # 将凭据与安全参数同时通过 connect_args 传入，避免因 URL 解析问题导致的 401
+                'authToken': turso_token,
+                'secure': True,
+                'follow_redirects': True
             }
         }
     }
