@@ -39,14 +39,25 @@ def _ensure_libsql_dialect_registered():
             registered_ok = True
             return import_ok, registered_ok, message
         except Exception:
-            # 未注册则手动注册
-            try:
-                registry.register('libsql', 'sqlalchemy_libsql', 'dialect')
-                registry.load('libsql')
-                registered_ok = True
-            except Exception as e2:
-                message = f'failed to register libsql dialect: {e2}'
-                registered_ok = False
+            # 未注册则手动注册，尝试多种候选位置
+            candidates = [
+                ('sqlalchemy_libsql', 'dialect'),
+                ('sqlalchemy_libsql.dialect', 'dialect'),
+                ('sqlalchemy_libsql.base', 'dialect'),
+                ('sqlalchemy_libsql.base', 'LibSQLDialect'),
+            ]
+            last_error = None
+            for module_path, obj_name in candidates:
+                try:
+                    registry.register('libsql', module_path, obj_name)
+                    registry.load('libsql')
+                    registered_ok = True
+                    message = f'registered via {module_path}:{obj_name}'
+                    break
+                except Exception as e2:
+                    last_error = e2
+            if not registered_ok:
+                message = f'failed to register libsql dialect; last_error={last_error}'
     except Exception as e:
         message = f'registry access error: {e}'
     return import_ok, registered_ok, message
