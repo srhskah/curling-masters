@@ -40,7 +40,8 @@ with app.app_context():
     def set_sqlcipher_key(dbapi_connection, connection_record):
         """在连接时设置 SQLCipher 加密密钥"""
         cursor = dbapi_connection.cursor()
-        cursor.execute(f"PRAGMA key = '{ENCRYPTION_KEY}';")
+        encryption_key = os.getenv('DB_ENCRYPTION_KEY', 'default_key_change_me')
+        cursor.execute(f"PRAGMA key = '{encryption_key}';")
         cursor.close()
 
 # 添加Jinja2过滤器

@@ -1,8 +1,8 @@
 [build]
-  # 构建命令
+  # 构建命令：安装依赖
   command = "pip install -r requirements.txt"
   
-  # 发布目录
+  # 发布根目录 (包含 templates/)
   publish = "."
   
   # 环境变量
@@ -14,13 +14,12 @@
     # TURSO_AUTH_TOKEN = "your-turso-auth-token"
     # SECRET_KEY = "your-secret-key"
 
-# 重定向规则 - 将所有请求转发到Flask应用
+# 利用原生 Flask + Jinja2 应用
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/app"
   status = 200
 
-# 函数配置
 [functions]
   # 函数目录
   directory = "netlify/functions"

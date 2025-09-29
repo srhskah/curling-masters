@@ -4,7 +4,8 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
+# build/ 由 Frozen-Flask 生成，不应该被忽略（需要部署到 Netlify）
+# build/
 develop-eggs/
 dist/
 downloads/
@@ -99,8 +100,8 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
-# Jinja2 模板文件 - 迁移到纯 HTML/JS
-templates/
+# Jinja2 模板文件 - 现在需要包含在部署中
+# templates/
 
 # 开发文档 (除了核心文档)
 *.md
