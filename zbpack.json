@@ -1,4 +1,4 @@
 {
   "build_command": "pip install -r requirements.txt",
-  "start_command": "gunicorn app_api_simple:app --host 0.0.0.0 --port 8080"
+  "start_command": "gunicorn app_api_simple:app --bind 0.0.0.0:8080 --workers 1"
 }

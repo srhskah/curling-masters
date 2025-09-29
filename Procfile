@@ -1,1 +1,1 @@
-web: gunicorn app_api_simple:app --host 0.0.0.0 --port $PORT
+web: gunicorn app_api_simple:app --bind 0.0.0.0:$PORT --workers 1
