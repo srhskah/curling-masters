@@ -314,6 +314,20 @@ def pip_info():
 
     return jsonify({'packages': data, 'ok': require_ok, 'note': '; '.join(msg)}), (200 if require_ok else 500)
 
+@app.route('/api/env-check', methods=['GET'])
+def env_check():
+    """检查关键 Turso 环境变量是否存在（不回显真实值）。"""
+    def _mask(val: str | None) -> str:
+        if not val:
+            return 'missing'
+        return f"set(len={len(val)})"
+
+    return jsonify({
+        'DATABASE_TYPE': os.getenv('DATABASE_TYPE', 'missing'),
+        'TURSO_URL': _mask(os.getenv('TURSO_URL')),
+        'TURSO_AUTH_TOKEN': _mask(os.getenv('TURSO_AUTH_TOKEN')),
+    })
+
 @app.route('/api/turso-test', methods=['GET'])
 def turso_test():
     """Turso 数据库连接测试（直接使用 SQLAlchemy Engine）"""

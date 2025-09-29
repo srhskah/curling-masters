@@ -95,18 +95,24 @@ def get_turso_config():
     print(f"   Turso URL: {turso_url}")
     print(f"   认证令牌: {'已设置' if turso_token else '未设置'}")
 
+    # 兼容不同版本驱动可能接受的关键字参数
+    connect_args = {
+        'timeout': 30,
+        # 常见键名
+        'authToken': turso_token,
+        'secure': True,
+        'follow_redirects': True,
+        # 兼容形式
+        'auth_token': turso_token,
+        'tls': True,
+    }
+
     return {
         'DATABASE_TYPE': 'turso',
         'SQLALCHEMY_DATABASE_URI': url,
         'SQLALCHEMY_ENGINE_OPTIONS': {
             'poolclass': NullPool,
-            'connect_args': {
-                'timeout': 30,
-                # 将凭据与安全参数同时通过 connect_args 传入，避免因 URL 解析问题导致的 401
-                'authToken': turso_token,
-                'secure': True,
-                'follow_redirects': True
-            }
+            'connect_args': connect_args
         }
     }
 
