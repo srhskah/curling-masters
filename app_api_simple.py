@@ -45,6 +45,8 @@ def _ensure_libsql_dialect_registered():
                 ('sqlalchemy_libsql.dialect', 'dialect'),
                 ('sqlalchemy_libsql.base', 'dialect'),
                 ('sqlalchemy_libsql.base', 'LibSQLDialect'),
+                ('sqlalchemy_libsql.libsql', 'dialect'),
+                ('sqlalchemy_libsql.libsql', 'LibSQLDialect'),
             ]
             last_error = None
             for module_path, obj_name in candidates:
