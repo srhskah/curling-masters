@@ -48,6 +48,7 @@ def get_local_config():
     database_uri = get_sqlcipher_database_uri(db_path, encryption_key)
     
     return {
+        'DATABASE_TYPE': 'local',
         'SQLALCHEMY_DATABASE_URI': database_uri,
         'SQLALCHEMY_ENGINE_OPTIONS': {
             'poolclass': NullPool,
@@ -87,6 +88,7 @@ def get_turso_config():
     print(f"   认证令牌: {'已设置' if turso_token else '未设置'}")
 
     return {
+        'DATABASE_TYPE': 'turso',
         'SQLALCHEMY_DATABASE_URI': url,
         'SQLALCHEMY_ENGINE_OPTIONS': {
             'poolclass': NullPool,
