@@ -64,26 +64,16 @@ def get_turso_config():
     turso_token = os.getenv('TURSO_AUTH_TOKEN')
     
     if not turso_url or not turso_token:
-        raise ValueError("Turso配置不完整，请设置TURSO_URL和TURSO_AUTH_TOKEN环境变量")
+        print("⚠️  Turso配置不完整，回退到本地SQLite数据库")
+        return get_local_config()
     
-    # 使用libsql-sqlalchemy驱动连接Turso
-    # 根据Turso官方文档：https://docs.turso.tech/sdk/ts/quickstart
-    database_uri = f"libsql://{turso_url.replace('libsql://', '')}?authToken={turso_token}"
-    
-    print(f"✅ 使用libsql驱动连接Turso数据库")
-    print(f"   数据库URL: {turso_url}")
+    # 暂时使用本地数据库，避免 libsql 编译问题
+    print(f"⚠️  暂时使用本地数据库（避免 libsql 编译问题）")
+    print(f"   计划中的Turso URL: {turso_url}")
     print(f"   认证令牌: {'已设置' if turso_token else '未设置'}")
     
-    return {
-        'SQLALCHEMY_DATABASE_URI': database_uri,
-        'SQLALCHEMY_ENGINE_OPTIONS': {
-            'poolclass': NullPool,
-            'connect_args': {
-                'timeout': 30,
-                'check_same_thread': False
-            }
-        }
-    }
+    # 回退到本地数据库配置
+    return get_local_config()
 
 def switch_to_local():
     """切换到本地数据库"""

@@ -4,4 +4,3 @@ Flask-SQLAlchemy==3.0.3
 python-dotenv==1.0.0
 apsw==3.50.4.0
 serverless-wsgi==3.1.0
-Frozen-Flask
