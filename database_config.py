@@ -74,14 +74,22 @@ def get_turso_config():
     # - https://<db-host>.turso.io
     # - <db-host>.turso.io
     url = turso_url.strip()
-    if not (url.startswith('libsql://') or url.startswith('https://')):
-        # SQLAlchemy libsql 方言使用 libsql://
-        url = f"libsql://{url}"
+    if not (url.startswith('libsql://') or url.startswith('https://') or url.startswith('libsql+https://')):
+        # 默认采用 libsql+https 以避免 308 重定向（Hrana 走 HTTPS）
+        url = f"libsql+https://{url}"
 
     # 将 authToken 作为查询参数附加（若未包含）
     separator = '&' if ('?' in url) else '?'
+    params = []
     if 'authToken=' not in url:
-        url = f"{url}{separator}authToken={turso_token}"
+        params.append(f"authToken={turso_token}")
+    # 提示驱动使用安全连接并尽量跟随重定向，减少 308 问题
+    if 'secure=' not in url and 'tls=' not in url:
+        params.append('secure=true')
+    if 'follow_redirects=' not in url:
+        params.append('follow_redirects=true')
+    if params:
+        url = f"{url}{separator}{'&'.join(params)}"
 
     print("✅ 使用 Turso 远程数据库")
     print(f"   Turso URL: {turso_url}")
