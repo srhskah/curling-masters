@@ -67,13 +67,34 @@ def get_turso_config():
         print("⚠️  Turso配置不完整，回退到本地SQLite数据库")
         return get_local_config()
     
-    # 暂时使用本地数据库，避免 libsql 编译问题
-    print(f"⚠️  暂时使用本地数据库（避免 libsql 编译问题）")
-    print(f"   计划中的Turso URL: {turso_url}")
+    # 规范化 URL：允许传入已包含协议的 URL 或纯主机名
+    # 合法示例：
+    # - libsql://<db-host>.turso.io
+    # - https://<db-host>.turso.io
+    # - <db-host>.turso.io
+    url = turso_url.strip()
+    if not (url.startswith('libsql://') or url.startswith('https://')):
+        # SQLAlchemy libsql 方言使用 libsql://
+        url = f"libsql://{url}"
+
+    # 将 authToken 作为查询参数附加（若未包含）
+    separator = '&' if ('?' in url) else '?'
+    if 'authToken=' not in url:
+        url = f"{url}{separator}authToken={turso_token}"
+
+    print("✅ 使用 Turso 远程数据库")
+    print(f"   Turso URL: {turso_url}")
     print(f"   认证令牌: {'已设置' if turso_token else '未设置'}")
-    
-    # 回退到本地数据库配置
-    return get_local_config()
+
+    return {
+        'SQLALCHEMY_DATABASE_URI': url,
+        'SQLALCHEMY_ENGINE_OPTIONS': {
+            'poolclass': NullPool,
+            'connect_args': {
+                'timeout': 30
+            }
+        }
+    }
 
 def switch_to_local():
     """切换到本地数据库"""

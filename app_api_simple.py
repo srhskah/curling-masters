@@ -159,30 +159,28 @@ def config_info():
 
 @app.route('/api/turso-test', methods=['GET'])
 def turso_test():
-    """Turso 数据库连接测试"""
+    """Turso 数据库连接测试（直接使用 SQLAlchemy Engine）"""
+    from sqlalchemy import create_engine, text
+    uri = app.config.get('SQLALCHEMY_DATABASE_URI')
+    if not uri:
+        return jsonify({'status': 'error', 'error': 'No SQLALCHEMY_DATABASE_URI configured'}), 500
+
     try:
-        # 尝试导入原应用的数据库模型
-        from app import db
-        
-        with app.app_context():
-            # 执行简单查询测试
-            result = db.session.execute("SELECT datetime('now') as current_time")
-            time_result = result.fetchone()
-            
-            return jsonify({
-                'status': 'success',
-                'database_type': app.config.get('DATABASE_TYPE'),
-                'connection': 'Turso connected!',
-                'test_query': str(time_result[0]) if time_result else 'No result',
-                'environment': os.getenv('DATABASE_TYPE', 'unknown')
-            })
-            
+        engine = create_engine(uri, pool_pre_ping=True)
+        with engine.connect() as conn:
+            row = conn.execute(text("SELECT datetime('now') as current_time"))
+            result = row.fetchone()
+        return jsonify({
+            'status': 'success',
+            'database_type': app.config.get('DATABASE_TYPE'),
+            'uri_scheme': uri.split(':', 1)[0],
+            'test_query': str(result[0]) if result else 'No result',
+        })
     except Exception as e:
         return jsonify({
             'status': 'error',
             'database_type': app.config.get('DATABASE_TYPE'),
             'error': str(e),
-            'environment': os.getenv('DATABASE_TYPE', 'unknown')
         }), 500
 
 if __name__ == '__main__':
