@@ -1,14 +1,13 @@
 [build]
   # 构建命令：安装依赖
-  command = "pip install -r requirements.txt"
+  command = "pip install --requirement requirements.txt"
   
   # 发布根目录 (包含 templates/)
   publish = "."
   
-         # 环境变量
-        [build.environment]
-          PYTHON_VERSION = "3.11"
-          PIP_ROOT_USER_ACTION = "ignore"
+  # 环境变量
+  [build.environment]
+    PIP_ROOT_USER_ACTION = "ignore"
     DATABASE_TYPE = "turso"
     # 在Netlify控制台中设置以下环境变量：
     # TURSO_URL = "your-turso-database-url"
