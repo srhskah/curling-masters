@@ -322,10 +322,25 @@ def env_check():
             return 'missing'
         return f"set(len={len(val)})"
 
+    from urllib.parse import urlparse, parse_qsl
+    uri = app.config.get('SQLALCHEMY_DATABASE_URI')
+    parsed = None
+    q = {}
+    try:
+        parsed = urlparse(uri) if uri else None
+        q = dict(parse_qsl(parsed.query)) if parsed else {}
+    except Exception:
+        parsed = None
+        q = {}
+
     return jsonify({
         'DATABASE_TYPE': os.getenv('DATABASE_TYPE', 'missing'),
         'TURSO_URL': _mask(os.getenv('TURSO_URL')),
         'TURSO_AUTH_TOKEN': _mask(os.getenv('TURSO_AUTH_TOKEN')),
+        'uri_scheme': (parsed.scheme if parsed else None),
+        'uri_has_authToken': ('authToken' in q),
+        'uri_has_secure': (('secure' in q) or ('tls' in q)),
+        'uri_has_follow_redirects': ('follow_redirects' in q),
     })
 
 @app.route('/api/turso-test', methods=['GET'])
@@ -350,6 +365,7 @@ def turso_test():
             'libsql_import_ok': import_ok,
             'libsql_registered_ok': registered_ok,
             'libsql_message': reg_msg,
+            'note': 'using URL query + connect_args for authToken/secure/follow_redirects',
         })
     except Exception as e:
         return jsonify({

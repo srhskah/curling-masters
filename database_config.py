@@ -6,6 +6,7 @@
 """
 
 import os
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from scripts.sqlcipher_connector import get_sqlcipher_database_uri
@@ -79,17 +80,19 @@ def get_turso_config():
         url = f"libsql+https://{url}"
 
     # 将 authToken 作为查询参数附加（若未包含）
-    separator = '&' if ('?' in url) else '?'
-    params = []
-    if 'authToken=' not in url:
-        params.append(f"authToken={turso_token}")
-    # 提示驱动使用安全连接并尽量跟随重定向，减少 308 问题
-    if 'secure=' not in url and 'tls=' not in url:
-        params.append('secure=true')
-    if 'follow_redirects=' not in url:
-        params.append('follow_redirects=true')
-    if params:
-        url = f"{url}{separator}{'&'.join(params)}"
+    # 规范化并 URL 编码查询参数
+    parsed = urlparse(url)
+    query_dict = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    # 清理环境变量首尾空白
+    token_clean = (turso_token or '').strip()
+    if token_clean and 'authToken' not in query_dict:
+        query_dict['authToken'] = token_clean
+    if 'secure' not in query_dict and 'tls' not in query_dict:
+        query_dict['secure'] = 'true'
+    if 'follow_redirects' not in query_dict:
+        query_dict['follow_redirects'] = 'true'
+    new_query = urlencode(query_dict, doseq=True)
+    url = urlunparse(parsed._replace(query=new_query))
 
     print("✅ 使用 Turso 远程数据库")
     print(f"   Turso URL: {turso_url}")
@@ -99,11 +102,11 @@ def get_turso_config():
     connect_args = {
         'timeout': 30,
         # 常见键名
-        'authToken': turso_token,
+        'authToken': token_clean,
         'secure': True,
         'follow_redirects': True,
         # 兼容形式
-        'auth_token': turso_token,
+        'auth_token': token_clean,
         'tls': True,
     }
 
