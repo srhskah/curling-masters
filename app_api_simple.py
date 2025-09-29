@@ -164,6 +164,51 @@ def config_info():
         'environment': 'production'
     })
 
+@app.route('/api/deps', methods=['GET'])
+def deps():
+    """依赖与方言检测"""
+    info = {
+        'sqlalchemy_version': None,
+        'sqlalchemy_libsql_importable': False,
+        'sqlalchemy_libsql_version': None,
+        'entrypoint_libsql_ok': False,
+        'message': ''
+    }
+    try:
+        import sqlalchemy
+        info['sqlalchemy_version'] = getattr(sqlalchemy, '__version__', 'unknown')
+    except Exception as e:
+        info['message'] = f'sqlalchemy import error: {e}'
+        return jsonify(info), 500
+
+    try:
+        import sqlalchemy_libsql as _sl
+        info['sqlalchemy_libsql_importable'] = True
+        info['sqlalchemy_libsql_version'] = getattr(_sl, '__version__', 'unknown')
+    except Exception as e:
+        info['message'] = f'sqlalchemy_libsql import error: {e}'
+        return jsonify(info), 500
+
+    # 检测方言是否可被 SQLAlchemy 解析
+    try:
+        from sqlalchemy.dialects import registry
+        # 尝试通过 registry 加载 libsql 方言
+        loaded = False
+        try:
+            registry.load('libsql')
+            loaded = True
+        except Exception:
+            loaded = False
+        info['entrypoint_libsql_ok'] = loaded
+        if not loaded:
+            info['message'] = 'sqlalchemy.dialects registry cannot load libsql (entrypoint 未注册)'
+    except Exception as e:
+        info['message'] = f'registry check error: {e}'
+        return jsonify(info), 500
+
+    status_code = 200 if info['entrypoint_libsql_ok'] else 500
+    return jsonify(info), status_code
+
 @app.route('/api/turso-test', methods=['GET'])
 def turso_test():
     """Turso 数据库连接测试（直接使用 SQLAlchemy Engine）"""
