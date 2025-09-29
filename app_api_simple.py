@@ -90,6 +90,22 @@ CORS(app)  # 启用跨域支持
 config = get_database_config()
 app.config.update(config)
 
+# 启动时打印明显标记与关键信息，便于在 Zeabur 日志确认版本是否已更新
+try:
+    from urllib.parse import urlparse, parse_qsl
+    from datetime import datetime
+    uri_boot = app.config.get('SQLALCHEMY_DATABASE_URI', '') or ''
+    parsed_boot = urlparse(uri_boot) if uri_boot else None
+    q_boot = dict(parse_qsl(parsed_boot.query)) if parsed_boot else {}
+    print("=== BOOT_MARKER v2 ===")
+    print(f"time={datetime.utcnow().isoformat()}Z")
+    print(f"db.scheme={(parsed_boot.scheme if parsed_boot else '')}")
+    print(f"db.has_authToken={'authToken' in q_boot}")
+    print(f"db.has_secure={'secure' in q_boot or 'tls' in q_boot}")
+    print(f"db.has_follow_redirects={'follow_redirects' in q_boot}")
+except Exception as _boot_err:
+    print("=== BOOT_MARKER v2 (error) ===", str(_boot_err))
+
 @app.route('/', methods=['GET'])
 def root():
     """根路径 - 返回完整的 index.html"""
@@ -210,6 +226,20 @@ def health():
         'status': 'ok',
         'message': 'API is running',
         'database_type': app.config.get('DATABASE_TYPE', 'unknown')
+    })
+
+@app.route('/api/health2', methods=['GET'])
+def health2():
+    """健康检查（含版本标记）"""
+    from datetime import datetime
+    uri = app.config.get('SQLALCHEMY_DATABASE_URI', '') or ''
+    scheme = uri.split(':', 1)[0] if uri else ''
+    return jsonify({
+        'status': 'ok',
+        'marker': 'health2-v2',
+        'utc': datetime.utcnow().isoformat() + 'Z',
+        'database_type': app.config.get('DATABASE_TYPE', 'unknown'),
+        'uri_scheme': scheme
     })
 
 @app.route('/api/test', methods=['GET'])
