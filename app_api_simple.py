@@ -157,6 +157,34 @@ def config_info():
         'environment': 'production'
     })
 
+@app.route('/api/turso-test', methods=['GET'])
+def turso_test():
+    """Turso 数据库连接测试"""
+    try:
+        # 尝试导入原应用的数据库模型
+        from app import db
+        
+        with app.app_context():
+            # 执行简单查询测试
+            result = db.session.execute("SELECT datetime('now') as current_time")
+            time_result = result.fetchone()
+            
+            return jsonify({
+                'status': 'success',
+                'database_type': app.config.get('DATABASE_TYPE'),
+                'connection': 'Turso connected!',
+                'test_query': str(time_result[0]) if time_result else 'No result',
+                'environment': os.getenv('DATABASE_TYPE', 'unknown')
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'database_type': app.config.get('DATABASE_TYPE'),
+            'error': str(e),
+            'environment': os.getenv('DATABASE_TYPE', 'unknown')
+        }), 500
+
 if __name__ == '__main__':
     print("🚀 启动 Flask API 服务器...")
     print(f"📊 数据库类型: {app.config.get('DATABASE_TYPE')}")

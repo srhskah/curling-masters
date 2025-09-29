@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeabur + Turso 连接测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #90EE90;
+        }
+        .loading { color: #ffd700; font-weight: bold; }
+        .success { color: #90EE90; font-weight: bold; }
+        .error { color: #FFB6C1; font-weight: bold; }
+        .input-group {
+            margin: 20px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+        }
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Zeabur + Turso 连接测试</h1>
+            <p>配置前后端分离架构</p>
+        </div>
+
+        <div class="test-card">
+            <h3>📡 后端配置</h3>
+            <div class="input-group">
+                <label>Zeabur 后端域名:</label>
+                <input type="text" id="backendUrl" placeholder="https://your-app.zeabur.app">
+            </div>
+            <button class="btn" onclick="testBackend()">测试后端连接</button>
+            <button class="btn" onclick="testTurso()">测试 Turso 连接</button>
+            <div id="backend-result"></div>
+        </div>
+
+        <div class="test-card">
+            <h3>🗄️ Turso 数据库配置</h3>
+            <p>在 Zeabur 服务中设置以下环境变量：</p>
+            <pre>
+DATABASE_TYPE=turso
+TURSO_URL=your-turso-database-url
+TURSO_AUTH_TOKEN=your-turso-auth-token
+SECRET_KEY=your-secret-key
+DB_ENCRYPTION_KEY=your-encryption-key
+            </pre>
+        </div>
+
+        <div class="test-card">
+            <h3>🌐 前端部署配置</h3>
+            <p>修正前端代码中的 API 地址：</p>
+            <pre id="frontend-config">
+// 在 frontend/index.html 中修改：
+const API_BASE = '请在此输入您的 Zeabur 后端地址';
+            </pre>
+            <button class="btn" onclick="updateConfig()">更新前端配置</button>
+        </div>
+
+        <div class="test-card">
+            <h3>✅ 测试步骤</h3>
+            <ol>
+                <li>在 Zeabur 设置 Turso 环境变量并重新部署</li>
+                <li>测试 <code>/api/turso-test</code> 端点确认数据库连接</li>
+                <li>更新前端代码中的 API_BASE</li>
+                <li>部署前端到 Netlify</li>
+                <li>测试完整的前后端通信</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let currentBackend = '';
+
+        async function testBackend() {
+            const backendUrl = document.getElementById('backendUrl').value.trim();
+            const resultDiv = document.getElementById('backend-result');
+            
+            if (!backendUrl) {
+                resultDiv.innerHTML = '<p class="error">请输入 Zeabur 后端域名</p>';
+                return;
+            }
+
+            currentBackend = backendUrl;
+            resultDiv.innerHTML = '<p class="loading">正在测试后端连接...</p>';
+
+            try {
+                // 测试健康检查端点
+                const healthResponse = await fetch(`${backendUrl}/api/health`);
+                const healthData = await healthResponse.json();
+                
+                resultDiv.innerHTML = `
+                    <p class="success">✅ 后端连接成功！</p>
+                    <h4>健康检查结果:</h4>
+                    <pre>${JSON.stringify(healthData, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 后端连接失败</p>
+                    <p>错误: ${error.message}</p>
+                    <p>请检查域名是否正确</p>
+                `;
+            }
+        }
+
+        async function testTurso() {
+            const resultDiv = document.getElementById('backend-result');
+            
+            if (!currentBackend) {
+                resultDiv.innerHTML = '<p class="error">请先测试后端连接</p>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<p class="loading">正在测试 Turso 数据库连接...</p>';
+
+            try {
+                const response = await fetch(`${currentBackend}/api/turso-test`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    resultDiv.innerHTML += `
+                        <h4>Turso 连接测试:</h4>
+                        <p class="success">✅ Turso 数据库连接成功！</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML += `
+                        <h4>Turso 连接测试:</h4>
+                        <p class="error">❌ Turso 数据库连接失败</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <h4>Turso 连接测试:</h4>
+                    <p class="error">❌ Turso 测试失败: ${error.message}</p>
+                `;
+            }
+        }
+
+        function updateConfig() {
+            if (!currentBackend) {
+                alert('请先测试后端连接');
+                return;
+            }
+
+            const configDiv = document.getElementById('frontend-config');
+            configDiv.innerHTML = `
+// 在 frontend/index.html 中修改：
+const API_BASE = '${currentBackend}';
+            `;
+        }
+    </script>
+</body>
+</html>
