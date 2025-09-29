@@ -3,48 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冰壶大师赛 - 加载中...</title>
+    <title>冰壶大师赛</title>
+    <link rel="stylesheet" href="static/styles.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: -apple-layer-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            background-color: #f5f5f5;
+            padding: 0;
+            background-color: #f8f9fa;
         }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
         .loading {
             text-align: center;
+            padding: 4rem 0;
         }
+        
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-            margin: 0 auto 20px;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .tournaments-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .tournament-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .tournament-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .tournament-card h3 {
+            margin: 0 0 1rem;
+            color: #333;
+            font-size: 1.4rem;
+        }
+        
+        .tournament-card p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+        
+        .tournament-detail {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tournament-detail h1 {
+            margin: 0 0 1rem;
+            color: #333;
+            font-size: 2rem;
+        }
+        
+        .tournament-detail h2 {
+            margin: 2rem 0 1rem;
+            color: #333;
+            font-size: 1.5rem;
+        }
+        
+        .matches-section {
+            margin-top: 2rem;
+        }
+        
+        .matches-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .match-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 4px solid #28a745;
+        }
+        
+        .match-players {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .match-players .player1 {
+            font-weight: 600;
+            flex: 1;
+            text-align: right;
+        }
+        
+        .match-players .vs {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .match-players .player2 {
+            font-weight: 600;
+            flex: 1;
+            text-align: left;
+        }
+        
+        .match-score {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .match-score .score {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+        
+        .match-type {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #c33;
+        }
+        
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #5a6268;
+        }
+        
+        /* 新增样式 */
+        .season {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 0 0 1rem;
+        }
+        
+        .tournament-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .info-item {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .info-item label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .info-item span {
+            color: #666;
+        }
+        
+        .description {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .description h3 {
+            margin: 0 0 1rem;
+            color: #007bff;
+        }
+        
+        .participants-section, .groups-section {
+            margin: 2rem 0;
+        }
+        
+        .participants-section h3, .groups-section h3 {
+            margin: 0 0 1rem;
+            color: #333;
+        }
+        
+        .participants-grid, .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .participant-card, .group-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .participant-name, .group-name {
+            font-weight: 600;
+            color: #333;
+            display: block;
+        }
+        
+        .participant-handicap, .group-count {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <div class="loading">
-        <div class="spinner"></div>
-        <h2>冰壶大师赛</h2>
-        <p>正在加载应用...</p>
-        <p>如果页面长时间未响应，请检查网络连接或联系管理员。</p>
+    <div class="header">
+        <h1>🏆 冰壶大师赛</h1>
+        <p>现代化赛事管理系统</p>
     </div>
     
-    <script>
-        // 自动重定向到Flask应用
-        setTimeout(function() {
-            window.location.href = '/.netlify/functions/app';
-        }, 2000);
-    </script>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <h2>正在加载...</h2>
+            <p>正在连接数据库和加载数据</p>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <!-- 动态内容将在这里显示 -->
+        </div>
+    </div>
+    
+    <script src="static/js/api.js"></script>
 </body>
 </html>

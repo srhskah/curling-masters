@@ -99,6 +99,14 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
+# Jinja2 模板文件 - 迁移到纯 HTML/JS
+templates/
+
+# 开发文档 (除了核心文档)
+*.md
+!SECURITY.md
+!README.md
+
 # Local development
 local_*.py
 debug_*.py

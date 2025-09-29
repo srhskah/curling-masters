@@ -22,8 +22,8 @@ if not os.getenv('DATABASE_TYPE'):
 os.environ['FLASK_ENV'] = 'production'
 
 try:
-    # 导入Flask应用
-    from app import app
+    # 导入Flask API应用
+    from app_api import app
     
     def handler(event, context):
         """Netlify Functions处理器"""
