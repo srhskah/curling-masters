@@ -17,6 +17,40 @@ except Exception as _e:
     # 延迟到 /api/turso-test 再反馈详细错误
     pass
 
+def _ensure_libsql_dialect_registered():
+    """确保 SQLAlchemy 能加载到 libsql 方言，必要时手动注册。
+    返回 (import_ok, registered_ok, message)
+    """
+    import_ok = False
+    registered_ok = False
+    message = ''
+    try:
+        import sqlalchemy_libsql  # noqa: F401
+        import_ok = True
+    except Exception as e:
+        message = f'sqlalchemy_libsql import error: {e}'
+        return import_ok, registered_ok, message
+
+    try:
+        from sqlalchemy.dialects import registry
+        # 先尝试直接加载
+        try:
+            registry.load('libsql')
+            registered_ok = True
+            return import_ok, registered_ok, message
+        except Exception:
+            # 未注册则手动注册
+            try:
+                registry.register('libsql', 'sqlalchemy_libsql', 'dialect')
+                registry.load('libsql')
+                registered_ok = True
+            except Exception as e2:
+                message = f'failed to register libsql dialect: {e2}'
+                registered_ok = False
+    except Exception as e:
+        message = f'registry access error: {e}'
+    return import_ok, registered_ok, message
+
 # 创建 Flask 应用
 app = Flask(__name__)
 CORS(app)  # 启用跨域支持
@@ -218,6 +252,7 @@ def turso_test():
         return jsonify({'status': 'error', 'error': 'No SQLALCHEMY_DATABASE_URI configured'}), 500
 
     try:
+        import_ok, registered_ok, reg_msg = _ensure_libsql_dialect_registered()
         engine = create_engine(uri, pool_pre_ping=True)
         with engine.connect() as conn:
             row = conn.execute(text("SELECT datetime('now') as current_time"))
@@ -227,12 +262,16 @@ def turso_test():
             'database_type': app.config.get('DATABASE_TYPE'),
             'uri_scheme': uri.split(':', 1)[0],
             'test_query': str(result[0]) if result else 'No result',
+            'libsql_import_ok': import_ok,
+            'libsql_registered_ok': registered_ok,
+            'libsql_message': reg_msg,
         })
     except Exception as e:
         return jsonify({
             'status': 'error',
             'database_type': app.config.get('DATABASE_TYPE'),
             'error': str(e),
+            'uri_scheme': (uri.split(':', 1)[0] if uri else None),
         }), 500
 
 if __name__ == '__main__':
