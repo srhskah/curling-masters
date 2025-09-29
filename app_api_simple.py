@@ -256,6 +256,46 @@ def deps():
     status_code = 200 if info['entrypoint_libsql_ok'] else 500
     return jsonify(info), status_code
 
+@app.route('/api/pip', methods=['GET'])
+def pip_info():
+    """显示关键包版本，帮助判断是否使用了旧缓存或预发布版。"""
+    try:
+        from importlib import metadata as importlib_metadata
+    except Exception:
+        import importlib_metadata  # type: ignore
+
+    def get_ver(name):
+        try:
+            return importlib_metadata.version(name)
+        except Exception:
+            return None
+
+    data = {
+        'sqlalchemy': get_ver('SQLAlchemy'),
+        'sqlalchemy-libsql': get_ver('sqlalchemy-libsql'),
+        'flask': get_ver('Flask'),
+        'gunicorn': get_ver('gunicorn'),
+    }
+    # 简单校验要求
+    require_ok = True
+    msg = []
+    ver = data.get('sqlalchemy-libsql')
+    if ver is None:
+        require_ok = False
+        msg.append('sqlalchemy-libsql 未安装')
+    else:
+        msg.append(f'sqlalchemy-libsql={ver}')
+        # 期望 0.2.0 及以上
+        try:
+            from packaging.version import Version
+            if Version(ver) < Version('0.2.0'):
+                require_ok = False
+                msg.append('版本过低，需 >= 0.2.0')
+        except Exception:
+            pass
+
+    return jsonify({'packages': data, 'ok': require_ok, 'note': '; '.join(msg)}), (200 if require_ok else 500)
+
 @app.route('/api/turso-test', methods=['GET'])
 def turso_test():
     """Turso 数据库连接测试（直接使用 SQLAlchemy Engine）"""
