@@ -9,6 +9,13 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 from database_config import get_database_config
+ 
+# 确保注册 libsql 方言
+try:
+    import sqlalchemy_libsql  # noqa: F401
+except Exception as _e:
+    # 延迟到 /api/turso-test 再反馈详细错误
+    pass
 
 # 创建 Flask 应用
 app = Flask(__name__)
