@@ -8528,6 +8528,12 @@ def can_user_edit_match(match, user_id=None):
     return False
 
 
+@app.route('/health')
+def health():
+    """健康检查路由"""
+    return {'status': 'ok', 'message': 'Flask app is running'}
+
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=False, host='0.0.0.0', port=8080, threaded=True)

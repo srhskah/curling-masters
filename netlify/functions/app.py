@@ -28,13 +28,19 @@ try:
     def handler(event, context):
         """Netlify Functions处理器"""
         try:
-            return handle_request(app, event, context)
+            print(f"Event: {json.dumps(event)}")
+            print(f"Context: {context}")
+            result = handle_request(app, event, context)
+            print(f"Result status: {result.get('statusCode', 'unknown')}")
+            return result
         except Exception as e:
             print(f"Handler error: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return {
                 'statusCode': 500,
                 'headers': {
-                    'Content-Type': 'text/html; charset=utf-8'
+                    'Content-Type': 'text.html; charset=utf-8'
                 },
                 'body': f'''
                 <html>
@@ -43,6 +49,7 @@ try:
                     <h1>服务器内部错误</h1>
                     <p>错误信息: {str(e)}</p>
                     <p>请检查应用配置或联系管理员。</p>
+                    <pre>{traceback.format_exc()}</pre>
                 </body>
                 </html>
                 '''
